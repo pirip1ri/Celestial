@@ -82,7 +82,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime); // Don't forget this if you're overriding Tick
 
-	FVector Start = RootComponent->GetComponentLocation();
+	FVector Start = RootComponent->GetComponentLocation() + RootComponent->GetComponentRotation().RotateVector(SweepStartOffset);
 	FVector End = Start + (FollowCamera->GetForwardVector() * MaximumInteractionDistance);
 
 	FCollisionQueryParams Params;

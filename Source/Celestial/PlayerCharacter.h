@@ -54,12 +54,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float MaximumInteractionDistance = 750.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float InteractionRadius = 30.0f;
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	bool bToggleDebugVisualiser = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+	FVector SweepStartOffset = FVector(0.f, 0.f, 50.f); // Example: Start from head height
+
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInteractionPromptWidget> InteractionPromptClass;
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
