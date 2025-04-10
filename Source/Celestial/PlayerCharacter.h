@@ -67,6 +67,10 @@ protected:
 	UInteractionPromptWidget* InteractionPromptInstance;
 	UUserWidget* CollectableCounterInstance;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float LookUpSensitivity = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float TurnSensitivity = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float SprintMultiplier = 2.0f; // Multiplier for sprinting

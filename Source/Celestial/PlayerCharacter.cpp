@@ -184,7 +184,7 @@ void APlayerCharacter::LookUp(float Value)
 {
 	if (Controller != nullptr)
 	{
-		AddControllerPitchInput(Value);
+		AddControllerPitchInput(Value * LookUpSensitivity);
 	}
 }
 
@@ -192,7 +192,7 @@ void APlayerCharacter::Turn(float Value)
 {
 	if (Controller != nullptr)
 	{
-		AddControllerYawInput(Value);
+		AddControllerYawInput(Value * TurnSensitivity);
 	}
 }
 
