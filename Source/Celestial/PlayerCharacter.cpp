@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -47,6 +48,7 @@ APlayerCharacter::APlayerCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	bCanDash = true;
 }
 
 // Called when the game starts or when spawned
@@ -56,14 +58,97 @@ void APlayerCharacter::BeginPlay()
 
 	// Store the default walk speed from the movement component
 	DefaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+
+	if (InteractionPromptClass)
+	{
+		InteractionPromptInstance = CreateWidget<UInteractionPromptWidget>(GetWorld(), InteractionPromptClass);
+		if (InteractionPromptInstance)
+		{
+			InteractionPromptInstance->AddToViewport();
+		}
+	}
+	if (CollectableCounterClass)
+	{
+		CollectableCounterInstance = CreateWidget<UUserWidget>(GetWorld(), CollectableCounterClass);
+		if (CollectableCounterInstance)
+		{
+			CollectableCounterInstance->AddToViewport();
+		}
+	}
 }
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaTime); // Don't forget this if you're overriding Tick
 
+	FVector Start = RootComponent->GetComponentLocation();
+	FVector End = Start + (FollowCamera->GetForwardVector() * MaximumInteractionDistance);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	FHitResult HitResult;
+	bool bHit = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		FQuat::FindBetweenVectors(FVector::UpVector, (End - Start).GetSafeNormal()),
+		ECC_Visibility,
+		FCollisionShape::MakeCapsule(InteractionRadius, MaximumInteractionDistance * 0.5f),
+		Params
+	);
+
+	if (bToggleDebugVisualiser)
+	{
+		DrawDebugCapsule(
+			GetWorld(),
+			(Start + End) * 0.5f,
+			MaximumInteractionDistance * 0.5f,
+			InteractionRadius,
+			FQuat::FindBetweenVectors(FVector::UpVector, (End - Start).GetSafeNormal()),
+			FColor::Green,
+			false,
+			0.1f
+		);
+	}
+
+	AInteractable* HitInteractable = bHit ? Cast<AInteractable>(HitResult.GetActor()) : nullptr;
+
+	if (HitInteractable)
+	{
+		// Only update if it's a new interactable
+		if (LastInteractable != HitInteractable)
+		{
+			LastInteractable = HitInteractable;
+
+			if (InteractionPromptInstance)
+			{
+				InteractionPromptInstance->SetPromptText(HitInteractable->InteractionPromptText);
+				InteractionPromptInstance->PlayFadeIn();
+			}
+		}
+	}
+	else if (LastInteractable) // We were looking at something, but not anymore
+	{
+		LastInteractable = nullptr;
+
+		if (InteractionPromptInstance)
+		{
+			InteractionPromptInstance->PlayFadeOut();
+		}
+	}
 }
+
+void APlayerCharacter::Interact()
+{
+	if (Controller && LastInteractable)
+	{
+		UE_LOG(LogTemp, Display, TEXT("INTERACTTTTTT"));
+		LastInteractable->InteractAbility();
+	}
+}
+
 
 void APlayerCharacter::MoveForward(float Value)
 {
@@ -127,6 +212,33 @@ void APlayerCharacter::StopSprint()
 	}
 }
 
+void APlayerCharacter::PlayDashMontage_Implementation()
+{
+
+}
+
+void APlayerCharacter::Dash()
+{
+	if (Controller != nullptr && bCanDash)
+	{
+		bCanDash = false;
+
+		FVector ForwardDir = GetActorRotation().Vector();
+		FVector UpwardDir = FVector::UpVector;
+		FVector DashVector = (ForwardDir * DashDistance) + (UpwardDir * VerticalDashDistance);
+
+		LaunchCharacter(DashVector, true, true);
+
+		// Start cooldown timer
+		GetWorld()->GetTimerManager().SetTimer(DashCooldownTimerHandle, this, &APlayerCharacter::DashReload, DashCooldown, false);
+	}
+}
+
+void APlayerCharacter::DashReload()
+{
+	bCanDash = true;
+}
+
 void APlayerCharacter::StartCrouch()
 {
 	if (Controller != nullptr)
@@ -140,30 +252,6 @@ void APlayerCharacter::StopCrouch()
 	if (Controller != nullptr)
 	{
 		UnCrouch();
-	}
-}
-
-void APlayerCharacter::Interact()
-{
-	if (Controller != nullptr)
-	{
-		// Perform a line trace or check nearby objects
-		FHitResult HitResult;
-		FVector Start = GetActorLocation(); // Start of the line trace is where the player is
-		FVector End = Start + (GetActorForwardVector() * 100.f); // End point = 200m away from Start point in the direction the player is looking in
-
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this); // ignore self
-
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params)) // Is there something nearby?
-		{
-			//AInteractableObject* Interactable = Cast<AInteractableObject>(HitResult.GetActor()); // Is that something an interactable object?
-			//if (Interactable) // If so, interact with it
-			//{
-			//	Interactable->InteractAbility();
-			//}
-			UE_LOG(LogTemp, Display, TEXT("Interact with object"));
-		}
 	}
 }
 

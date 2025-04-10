@@ -40,6 +40,9 @@ private:
     UInputAction* SprintAction;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* DashAction;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* CrouchAction;
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -57,6 +60,7 @@ private:
     void LookUp(const FInputActionValue& Value);
     void Turn(const FInputActionValue& Value);
     void Sprint(const FInputActionValue& Value);
+    void Dash(const FInputActionValue& Value);
     void Crouch(const FInputActionValue& Value);
     void JumpFunction();
     void JumpStopFunction();

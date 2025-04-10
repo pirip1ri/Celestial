@@ -37,12 +37,15 @@ void ACelestialPlayerController::SetupInputComponent()
         EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Sprint);
         EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Sprint);
 
+        // Bind Dash
+        EnhancedInput->BindAction(DashAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Dash);
+
         // Bind Crouch
         EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Crouch);
         EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Crouch);
 
         // Bind Interact
-        EnhancedInput->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::InteractWithObject);
+        EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ACelestialPlayerController::InteractWithObject);
 
         // Bind the pause action
         EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ACelestialPlayerController::TogglePause);
@@ -101,6 +104,14 @@ void ACelestialPlayerController::Sprint(const FInputActionValue& Value)
         {
             PlayerCharacter->StopSprint();
         }
+    }
+}
+
+void ACelestialPlayerController::Dash(const FInputActionValue& Value)
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        PlayerCharacter->PlayDashMontage();
     }
 }
 
