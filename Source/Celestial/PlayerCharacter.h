@@ -48,6 +48,11 @@ public:
 	void StopCrouch();
 	void Interact();
 
+	//for pick ups
+	void AddKey(FName Key);
+
+	bool HasKey(FName KeyID) const;
+
 	UPROPERTY(BlueprintReadOnly)
 	int CollectedCollectables = 0;
 protected:
@@ -93,4 +98,7 @@ protected:
 private:
 	float DeadZoneThreshold = 0.1f;
 
+
+	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+	TSet<FName> CollectedKeys;
 };

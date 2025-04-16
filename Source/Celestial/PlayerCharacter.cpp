@@ -255,4 +255,13 @@ void APlayerCharacter::StopCrouch()
 	}
 }
 
+void APlayerCharacter::AddKey(FName Key)
+{
+	CollectedKeys.Add(Key);
+	
+}
 
+bool APlayerCharacter::HasKey(FName KeyID) const
+{
+	return CollectedKeys.Contains(KeyID);
+}
