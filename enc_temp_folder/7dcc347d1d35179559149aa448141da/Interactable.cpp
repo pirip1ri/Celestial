@@ -29,6 +29,6 @@ void AInteractable::Tick(float DeltaTime)
 
 void AInteractable::InteractAbility_Implementation()
 {
-	///UE_LOG(LogTemp, Warning, TEXT("Base interactable interaction"));
+	UE_LOG(LogTemp, Warning, TEXT("Base interactable interaction"));
 }
 

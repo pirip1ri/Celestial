@@ -59,7 +59,6 @@ void ACelestialPlayerController::SetupInputComponent()
         // Bind Crouch
         EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACelestialPlayerController::JumpFunction);
         EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::JumpStopFunction);
-        // for mouseinteraction input
         EnhancedInput->BindAction(MouseTurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::Test);
         
     }
@@ -209,7 +208,6 @@ void ACelestialPlayerController::SetInputModeForPause(bool bIsPaused)
     }
     */
 }
-// mouse input x/y if needed
 void ACelestialPlayerController::Test(const FInputActionValue& Value)
 {
     const FVector2D AxisValue = Value.Get<FVector2D>(); 
@@ -222,12 +220,11 @@ void ACelestialPlayerController::TurnReflector(float Value)
 {
     if (ActiveReflector && FMath::Abs(Value) > KINDA_SMALL_NUMBER)
     {
-        ActiveReflector->AddYawInput(Value * RotationSensitivity); 
-       
+        ActiveReflector->AddYawInput(Value * RotationSensitivity); // Horizontal mouse movement
     }
     else
     {
-       
+        UE_LOG(LogTemp, Warning, TEXT("ActiveReflector is null or not interacting."));
     }
 }
 
@@ -235,12 +232,11 @@ void ACelestialPlayerController::TurnReflectorVertically(float Value)
 {
     if (ActiveReflector && FMath::Abs(Value) > KINDA_SMALL_NUMBER)
     {
-        ActiveReflector->AddPitchInput(Value * RotationSensitivity);
-        // Vertical mouse movement
+        ActiveReflector->AddPitchInput(Value * RotationSensitivity); // Vertical mouse movement
     }
     else
     {
-     
+        UE_LOG(LogTemp, Warning, TEXT("ActiveReflector is null or not interacting."));
     }
 }
 void ACelestialPlayerController::SetActiveReflector(ARotatereflecter* Reflector)

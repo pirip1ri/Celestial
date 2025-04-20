@@ -272,9 +272,9 @@ void APlayerCharacter::TryInteract()
 {
 	if (LastInteractable)
 	{
-		LastInteractable->InteractAbility(); 
+		LastInteractable->InteractAbility(); // Triggers blueprint or C++ logic on the actor
 
-		
+		// Set the ActiveReflector in the controller
 		ACelestialPlayerController* CelestialController = Cast<ACelestialPlayerController>(GetController());
 		ARotatereflecter* Reflector = Cast<ARotatereflecter>(LastInteractable);
 
@@ -283,7 +283,7 @@ void APlayerCharacter::TryInteract()
 			CelestialController->SetActiveReflector(Reflector);
 			Reflector->bIsInteracting = true;
 
-			
+			UE_LOG(LogTemp, Warning, TEXT("Reflector set as ActiveReflector."));
 		}
 	}
 }

@@ -53,6 +53,8 @@ public:
 
 	bool HasKey(FName KeyID) const;
 
+	void TryInteract();
+
 	UPROPERTY(BlueprintReadOnly)
 	int CollectedCollectables = 0;
 protected:

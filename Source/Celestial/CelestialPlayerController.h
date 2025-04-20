@@ -11,6 +11,8 @@
 /**
  *
  */
+class ARotatereflecter;
+class UPauseMenuWidget;
 UCLASS()
 class CELESTIAL_API ACelestialPlayerController : public APlayerController
 {
@@ -53,8 +55,16 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* PauseAction;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* MouseTurnAction;
 
-    // Input Action Functions
+    UPROPERTY()
+    UPauseMenuWidget* PauseWidget;
+    
+   UPROPERTY(EditDefaultsOnly)
+   TSubclassOf< UPauseMenuWidget> PauseWidgetclass;
+   UPROPERTY()
+   ARotatereflecter* ActiveReflector;
     void MoveForward(const FInputActionValue& Value);
     void MoveRight(const FInputActionValue& Value);
     void LookUp(const FInputActionValue& Value);
@@ -62,12 +72,21 @@ private:
     void Sprint(const FInputActionValue& Value);
     void Dash(const FInputActionValue& Value);
     void Crouch(const FInputActionValue& Value);
+    void Test(const FInputActionValue& Value);
     void JumpFunction();
     void JumpStopFunction();
     void InteractWithObject();
-
+    void  TurnReflector(float Value);
+    void TurnReflectorVertically(float Value);
     // Pause the game
     void TogglePause();
     // Helper function to set input mode
     void SetInputModeForPause(bool bIsPaused);
+  
+
+
+
+    float  RotationSensitivity = 2.0f;;
+public:
+   void SetActiveReflector(class ARotatereflecter* Reflector);
 };
