@@ -49,7 +49,7 @@ public:
 	void Interact();
 
 	UPROPERTY(BlueprintReadOnly)
-	int CollectedCollectables = 0;
+	int CurrentLevelsCollectedCollectables = 0;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

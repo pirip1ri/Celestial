@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacter.h"
 
 void ACelestialPlayerController::BeginPlay()
@@ -42,7 +43,6 @@ void ACelestialPlayerController::SetupInputComponent()
 
         // Bind Crouch
         EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Crouch);
-        EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Crouch);
 
         // Bind Interact
         EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ACelestialPlayerController::InteractWithObject);
@@ -119,13 +119,16 @@ void ACelestialPlayerController::Crouch(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
-        if (Value.Get<bool>())
+        if (UCharacterMovementComponent* MovementComp = PlayerCharacter->GetCharacterMovement())
         {
-            PlayerCharacter->StartCrouch();
-        }
-        else
-        {
-            PlayerCharacter->StopCrouch();
+            if (!MovementComp->IsCrouching())
+            {
+                PlayerCharacter->StartCrouch();
+            }
+            else
+            {
+                PlayerCharacter->StopCrouch();
+            }
         }
     }
 }
