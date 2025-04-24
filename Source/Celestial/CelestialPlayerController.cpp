@@ -8,6 +8,8 @@
 #include "PlayerCharacter.h"
 #include "PauseMenuWidget.h"
 #include "Rotatereflecter.h"
+#include "CelestialTutorialPromptManager.h"
+#include "InspectInteractable.h"
 
 void ACelestialPlayerController::BeginPlay()
 {
@@ -20,6 +22,58 @@ void ACelestialPlayerController::BeginPlay()
     }
 
     
+
+    // Get reference to PromptManager
+    ACelestialTutorialPromptManager* PromptManager = Cast<ACelestialTutorialPromptManager>(
+        UGameplayStatics::GetActorOfClass(GetWorld(), ACelestialTutorialPromptManager::StaticClass())
+    );
+
+    if (PromptManager && InputComponent)
+    {
+        if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
+        {
+            const TArray<FPromptData>& Prompts = PromptManager->GetPromptList();
+            for (const FPromptData& Prompt : Prompts)
+            {
+                if (Prompt.InputAction)
+                {
+                    EnhancedInput->BindAction(Prompt.InputAction, ETriggerEvent::Started, PromptManager, &ACelestialTutorialPromptManager::AdvancePromptFromController);
+                }
+            }
+        }
+    }
+}
+
+
+void ACelestialPlayerController::HandleTutorialNextStep(const FInputActionInstance& Instance)
+{
+    if (bTutorialModeActive)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Tutorial step triggered!"));
+
+        // Your tutorial logic here ( progress to next step)
+        AdvanceTutorialStep();
+    }
+}
+
+int32 TutorialStep = 0;
+void ACelestialPlayerController::AdvanceTutorialStep()
+{
+    TutorialStep++;
+
+    switch (TutorialStep)
+    {
+    case 1:
+        UE_LOG(LogTemp, Log, TEXT("Step 1: Move forward."));
+        break;
+    case 2:
+        UE_LOG(LogTemp, Log, TEXT("Step 2: Jump."));
+        break;
+    case 3:
+        UE_LOG(LogTemp, Log, TEXT("Tutorial complete."));
+        bTutorialModeActive = false;
+        break;
+    }
 }
 
 
@@ -50,7 +104,8 @@ void ACelestialPlayerController::SetupInputComponent()
         EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Crouch);
 
         // Bind Interact
-        EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ACelestialPlayerController::InteractWithObject);
+        EnhancedInput->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::InteractWithObject);
+        //EnhancedInput->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::EndInteraction);
 
         // Bind the pause action
         EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ACelestialPlayerController::TogglePause);
@@ -62,6 +117,10 @@ void ACelestialPlayerController::SetupInputComponent()
         // for mouseinteraction input
         EnhancedInput->BindAction(MouseTurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::Test);
         
+        if (TutorialNextAction)
+        {
+            EnhancedInput->BindAction(TutorialNextAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::HandleTutorialNextStep);
+        }
     }
 }
 
@@ -161,10 +220,32 @@ void ACelestialPlayerController::InteractWithObject()
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
-        PlayerCharacter->Interact();
+        if (ActiveReflector)
+        {
+            if (ActiveReflector->IsInteracting())
+            {
+                ActiveReflector->EndInteraction();
+                SetActiveReflector(nullptr);
+            }
+            else
+            {
+                PlayerCharacter->Interact();
+            }
+        }
+        else
+        {
+            PlayerCharacter->Interact();
+        }
     }
 }
-
+bool ARotatereflecter::IsInteracting() const
+{
+    return bIsInteracting;
+}
+void ARotatereflecter::EndInteraction()
+{
+    bIsInteracting = false;
+}
 void ACelestialPlayerController::TogglePause()
 {
     if (!PauseWidget)
@@ -174,8 +255,15 @@ void ACelestialPlayerController::TogglePause()
 
     if (PauseWidget)
     {
-        PauseWidget->TogglePauseMenu();
+        PauseWidget->ToggleContextualMenu(
+            true,
+            FText::FromString("Paused"),
+            nullptr,               
+            true                  
+        );
     }
+
+
 
 
     /*
@@ -190,6 +278,14 @@ void ACelestialPlayerController::TogglePause()
     // Use the GameMode's functionality to toggle the pause menu
     GameMode->ChangeGameState(EDescentGameState::Paused);
     */
+}
+
+void ACelestialPlayerController::EndInteraction()
+{
+    if (AInspectInteractable* I = Cast<AInspectInteractable>(this))
+    {
+        I->EndInspection();
+    }  
 }
 
 void ACelestialPlayerController::SetInputModeForPause(bool bIsPaused)
@@ -216,33 +312,27 @@ void ACelestialPlayerController::Test(const FInputActionValue& Value)
 
     // Apply to reflector
     TurnReflector(AxisValue.X);       
-    TurnReflectorVertically(AxisValue.Y); 
+    LookUpReflector(AxisValue.Y);
 }
+void ACelestialPlayerController::LookUpReflector(float Value)
+{
+    if (ActiveReflector && FMath::Abs(Value) > KINDA_SMALL_NUMBER)
+    {
+        float DeltaTime = GetWorld()->GetDeltaSeconds();
+        ActiveReflector->AddPitchInput(Value * RotationSensitivity * DeltaTime);
+    }
+}
+
 void ACelestialPlayerController::TurnReflector(float Value)
 {
     if (ActiveReflector && FMath::Abs(Value) > KINDA_SMALL_NUMBER)
     {
-        ActiveReflector->AddYawInput(Value * RotationSensitivity); 
-       
-    }
-    else
-    {
-       
+        float DeltaTime = GetWorld()->GetDeltaSeconds();
+        ActiveReflector->AddYawInput(Value * RotationSensitivity * DeltaTime);
     }
 }
 
-void ACelestialPlayerController::TurnReflectorVertically(float Value)
-{
-    if (ActiveReflector && FMath::Abs(Value) > KINDA_SMALL_NUMBER)
-    {
-        ActiveReflector->AddPitchInput(Value * RotationSensitivity);
-        // Vertical mouse movement
-    }
-    else
-    {
-     
-    }
-}
+
 void ACelestialPlayerController::SetActiveReflector(ARotatereflecter* Reflector)
 {
     ActiveReflector = Reflector;

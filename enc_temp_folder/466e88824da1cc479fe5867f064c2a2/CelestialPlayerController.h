@@ -83,7 +83,6 @@ private:
     void LookUpReflector(float Value);
     // Pause the game
     void TogglePause();
-    void EndInteraction();
     // Helper function to set input mode
     void SetInputModeForPause(bool bIsPaused);
   

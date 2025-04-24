@@ -78,6 +78,8 @@ void APlayerCharacter::BeginPlay()
 	}
 }
 
+
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -274,7 +276,7 @@ void APlayerCharacter::TryInteract()
 	{
 		LastInteractable->InteractAbility(); 
 
-		
+			
 		ACelestialPlayerController* CelestialController = Cast<ACelestialPlayerController>(GetController());
 		ARotatereflecter* Reflector = Cast<ARotatereflecter>(LastInteractable);
 
@@ -287,3 +289,49 @@ void APlayerCharacter::TryInteract()
 		}
 	}
 }
+
+
+//void APlayerCharacter::SetZoomDuringInspect(float ZoomAmount)
+//{
+//	float NewArmLength = FMath::Clamp(CameraBoom->TargetArmLength - ZoomAmount, MinZoom, MaxZoom);
+//	CameraBoom->TargetArmLength = NewArmLength;
+//}
+void APlayerCharacter::ZoomToInspectable(FVector InspectLocation, FRotator InspectRotation)
+{
+	if (!FollowCamera) return;
+
+	bIsInspecting = true;
+
+	// Save current transform
+	OriginalCameraLocation = FollowCamera->GetComponentLocation();
+	OriginalCameraRotation = FollowCamera->GetComponentRotation();
+
+	// Detach camera from boom
+	FollowCamera->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
+	// Smoothly interpolate the camera to the inspect point
+	FVector CurrentLocation = FollowCamera->GetComponentLocation();
+	FRotator CurrentRotation = FollowCamera->GetComponentRotation();
+
+	// Interpolate position and rotation smoothly
+	FVector NewLocation = FMath::VInterpTo(CurrentLocation, InspectLocation, GetWorld()->GetDeltaSeconds(), 2.0f); // Adjust 5.0f for speed
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, InspectRotation, GetWorld()->GetDeltaSeconds(), 2.0f); // Adjust 5.0f for speed
+
+	FollowCamera->SetWorldLocation(NewLocation);
+	FollowCamera->SetWorldRotation(NewRotation);
+}
+
+void APlayerCharacter::ResetCameraAfterInspect()
+{
+	if (!FollowCamera || !bIsInspecting) return;
+
+	// Restore the camera to its original transform
+	FollowCamera->SetWorldLocation(OriginalCameraLocation);
+	FollowCamera->SetWorldRotation(OriginalCameraRotation);
+
+	// Reattach to spring arm
+	FollowCamera->AttachToComponent(CameraBoom, FAttachmentTransformRules::SnapToTargetIncludingScale);
+
+	bIsInspecting = false;
+}
+

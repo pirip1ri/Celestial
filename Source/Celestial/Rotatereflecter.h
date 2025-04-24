@@ -25,7 +25,7 @@ virtual	void Tick(float DeltaTime) override;
 
 	float RotationSpeed = 0.5f; 
 	bool bShouldRotate = false;
-	void ReflectBeam(FVector HitPoint, FVector IncomingDirection, int32 RemainingBounces);
+virtual	void ReflectBeam(FVector HitPoint, FVector IncomingDirection, int32 RemainingBounces);
 	void AddYawInput(float DeltaYaw);
 	void AddPitchInput(float DeltaPitch);
 	virtual void InteractAbility_Implementation()override;
@@ -38,5 +38,9 @@ virtual	void Tick(float DeltaTime) override;
 	bool bIsInteracting;
 	FRotator TargetRotation;
 
+
+	bool IsInteracting() const;
+
+	void EndInteraction();
 
 };

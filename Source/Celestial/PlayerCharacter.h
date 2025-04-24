@@ -18,16 +18,16 @@ class CELESTIAL_API APlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
-
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
 public:
 	// Sets default values for this character's properties
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* CameraBoom;
+
 	APlayerCharacter();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -48,12 +48,18 @@ public:
 	void StopCrouch();
 	void Interact();
 
+	
 	//for pick ups
 	void AddKey(FName Key);
 
 	bool HasKey(FName KeyID) const;
 
 	void TryInteract();
+	void ZoomToInspectable(FVector InspectLocation, FRotator InspectRotation);
+	void ResetCameraAfterInspect();
+
+
+	//void ZoomInToActor(AActor* TargetActor, float ZoomAmount);
 
 	UPROPERTY(BlueprintReadOnly)
 	int CollectedCollectables = 0;
@@ -100,7 +106,14 @@ protected:
 private:
 	float DeadZoneThreshold = 0.1f;
 
-
+	//Zoom 
+	FVector OriginalCameraLocation;
+	FRotator OriginalCameraRotation;
+	bool bIsInspecting = false;
+	float MinZoom = 300.0f;
+	float MaxZoom = 800.0f;
+	float ZoomStep = 50.0f;
 	UPROPERTY(VisibleAnywhere, Category = "Inventory")
 	TSet<FName> CollectedKeys;
+
 };
