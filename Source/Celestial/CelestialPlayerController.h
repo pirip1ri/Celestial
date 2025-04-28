@@ -54,6 +54,9 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* PauseAction;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* CastLightAction;
+
     // Input Action Functions
     void MoveForward(const FInputActionValue& Value);
     void MoveRight(const FInputActionValue& Value);
@@ -65,6 +68,8 @@ private:
     void JumpFunction();
     void JumpStopFunction();
     void InteractWithObject();
+    void CastLight();
+    void CastLightEnd();
 
     // Pause the game
     void TogglePause();

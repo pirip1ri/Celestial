@@ -12,6 +12,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
+class ULightBeamSpawnerComponent;
 
 UCLASS()
 class CELESTIAL_API APlayerCharacter : public ACharacter
@@ -25,6 +26,9 @@ class CELESTIAL_API APlayerCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere)
+	ULightBeamSpawnerComponent* LightBeamSpawner;
 
 public:
 	// Sets default values for this character's properties
@@ -47,6 +51,8 @@ public:
 	void StartCrouch();
 	void StopCrouch();
 	void Interact();
+	void CastLight();
+	void CastLightEnd();
 
 	UPROPERTY(BlueprintReadOnly)
 	int CurrentLevelsCollectedCollectables = 0;
@@ -87,7 +93,10 @@ protected:
 	bool bCanDash = true;
 	FTimerHandle DashCooldownTimerHandle;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LightBeam")
+	FName LightBeamSocketName = "spine_05"; // Default socket name
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsFiringBeam = false;
 
 	AInteractable* LastInteractable;
 private:

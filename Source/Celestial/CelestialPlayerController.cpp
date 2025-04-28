@@ -53,6 +53,10 @@ void ACelestialPlayerController::SetupInputComponent()
         // Bind Crouch
         EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACelestialPlayerController::JumpFunction);
         EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::JumpStopFunction);
+        
+        // Bind Light Beam
+        EnhancedInput->BindAction(CastLightAction, ETriggerEvent::Started, this, &ACelestialPlayerController::CastLight);
+        EnhancedInput->BindAction(CastLightAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::CastLightEnd);
     }
 }
 
@@ -154,6 +158,22 @@ void ACelestialPlayerController::InteractWithObject()
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
         PlayerCharacter->Interact();
+    }
+}
+
+void ACelestialPlayerController::CastLight()
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        PlayerCharacter->CastLight();
+    }
+}
+
+void ACelestialPlayerController::CastLightEnd()
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        PlayerCharacter->CastLightEnd();
     }
 }
 
