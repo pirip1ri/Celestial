@@ -50,10 +50,20 @@ protected:
 public:
 	UFUNCTION()
 	void AdvancePromptFromController();
+	void UpdateTextColor();
+	UFUNCTION()
+	void AdvanceToNextPrompt();
 	UFUNCTION(BlueprintCallable)
 	const TArray<FPromptData>& GetPromptList() const { return Prompts; }
 	int32 CurrentPromptIndex;
+	UFUNCTION()
+	void HandlePromptInput(const FInputActionInstance& ActionInstance);
+private:
+	FTimerHandle ColorBlendTimerHandle;
+	float ColorBlendTimeElapsed = 0.f;
+	float ColorBlendDuration = 1.f;
 
-	/*UFUNCTION()
-	void HandleCurrentInput(const struct FInputActionInstance& ActionInstance);*/
+	FLinearColor StartColor = FLinearColor::White;
+	FLinearColor TargetColor = FLinearColor::Green;
+
 };

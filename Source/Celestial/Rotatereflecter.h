@@ -17,7 +17,7 @@ class CELESTIAL_API ARotatereflecter : public AInteractable
 public:
 	ARotatereflecter();
 	void BeginPlay();
-	
+	UStaticMeshComponent* GetMesh() { return MeshComponent; }
 	void InteractWithReflector();
 	void RotateReflector(FString Direction);
 
@@ -39,8 +39,10 @@ virtual	void ReflectBeam(FVector HitPoint, FVector IncomingDirection, int32 Rema
 	FRotator TargetRotation;
 
 
-	bool IsInteracting() const;
+	//bool IsInteracting() const;
 
-	void EndInteraction();
+	//void StartInteraction();
+
+	//void EndInteraction();
 
 };

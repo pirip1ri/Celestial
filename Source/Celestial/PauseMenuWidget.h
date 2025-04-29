@@ -24,7 +24,13 @@ public:
 
     virtual void OnMenuOpened() override;
     virtual void OnMenuClosed() override;
-    void ToggleContextualMenu(bool bShow, const FText& Message, UTexture2D* OptionalImage, bool bShowPauseButtons);
+    void ToggleContextualMenu(bool bShow, const FText& Message, UTexture2D* OptionalImage, bool bShowPauseButtons, bool bIsInspectionMenu);
+    bool bContextualMenuPending = false;
+    UPROPERTY(meta = (BindWidget))
+    UImage* InspectImage;
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* Text;
+
 protected:
     virtual void NativeOnInitialized() override;
 
@@ -40,12 +46,8 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UButton* MainMenuButton;
     
-    UPROPERTY(meta = (BindWidget))
-    UTextBlock* Text;
-
-    UPROPERTY(meta = (BindWidget))
-    UImage* InspectImage;
-  
+    UPROPERTY(meta = (BindWidgetOptional))
+    UButton* ExitInspectButton;
 
     UFUNCTION()
     void OnResumeClicked();
@@ -53,4 +55,9 @@ private:
     void OnMainMenuClicked();
     UFUNCTION()
     void OnQuitClicked();
+   // void ClearContextualMenuContent();
+    UFUNCTION()
+    void OnExitInspectClicked();
+    FTimerHandle ContextualMenuTimerHandle;
+    bool bIsExitingInspection = false;
 };

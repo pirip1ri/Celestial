@@ -62,7 +62,7 @@ void ARotatereflecter::InteractWithReflector()
     if (!Player) return;
     RotateReflector("Right");
 }
-
+// Old System//
 void ARotatereflecter::RotateReflector(FString Direction)
 {
     TargetRotation = MeshComponent->GetComponentRotation(); 
@@ -87,7 +87,20 @@ void ARotatereflecter::RotateReflector(FString Direction)
     TargetRotation.Normalize();
     bShouldRotate = true;
 }
-
+//bool ARotatereflecter::IsInteracting() const
+//{
+//    return bIsInteracting;
+//}
+//
+//void ARotatereflecter::StartInteraction()
+//{
+//    bIsInteracting = true;
+//}
+//
+//void ARotatereflecter::EndInteraction()
+//{
+//    bIsInteracting = false;
+//}
 
 void ARotatereflecter::ReflectBeam(FVector HitPoint, FVector IncomingDirection, int32 RemainingBounces)
 {
@@ -116,6 +129,7 @@ void ARotatereflecter::ReflectBeam(FVector HitPoint, FVector IncomingDirection, 
             if (NextMirror && NextMirror != this)
             {
                 NextMirror->ReflectBeam(Hit.ImpactPoint, ReflectedDirection, RemainingBounces - 1);
+                //for fixed positioning
                 bShouldRotate = false;
             }
         }

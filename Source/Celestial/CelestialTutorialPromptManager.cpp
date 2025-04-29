@@ -27,7 +27,16 @@ void ACelestialTutorialPromptManager::BeginPlay()
 
 void ACelestialTutorialPromptManager::ShowNextPrompt()
 {
-	if (!Prompts.IsValidIndex(CurrentPromptIndex)) return;
+	// If we've reached the end of the prompts, hide the widget and return
+	if (!Prompts.IsValidIndex(CurrentPromptIndex))
+	{
+		if (CurrentWidget)
+		{
+			CurrentWidget->RemoveFromParent();
+			CurrentWidget = nullptr;
+		}
+		return;
+	}
 
 	const FPromptData& Prompt = Prompts[CurrentPromptIndex];
 
@@ -51,12 +60,56 @@ void ACelestialTutorialPromptManager::ShowNextPrompt()
 	}
 }
 
+
 void ACelestialTutorialPromptManager::AdvancePromptFromController()
 {
 	if (Prompts.IsValidIndex(CurrentPromptIndex))
 	{
 		Prompts[CurrentPromptIndex].bCompleted = true;
-		CurrentPromptIndex++;
-		ShowNextPrompt();
+
+		// Start color interpolation
+		ColorBlendTimeElapsed = 0.f;
+		GetWorld()->GetTimerManager().SetTimer(ColorBlendTimerHandle, this, &ACelestialTutorialPromptManager::UpdateTextColor, 0.01f, true);
+	}
+}
+
+void ACelestialTutorialPromptManager::UpdateTextColor()
+{
+	if (!CurrentWidget) return;
+
+	if (UTextBlock* TextBlock = Cast<UTextBlock>(CurrentWidget->GetWidgetFromName(TEXT("PromptText"))))
+	{
+		ColorBlendTimeElapsed += GetWorld()->GetDeltaSeconds();
+		float Alpha = FMath::Clamp(ColorBlendTimeElapsed / ColorBlendDuration, 0.f, 1.f);
+		FLinearColor BlendedColor = FLinearColor::LerpUsingHSV(StartColor, TargetColor, Alpha);
+
+		TextBlock->SetColorAndOpacity(FSlateColor(BlendedColor));
+
+		if (Alpha >= 1.f)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(ColorBlendTimerHandle);
+
+			// After color is fully green, wait briefly then advance
+			FTimerHandle DelayHandle;
+			GetWorld()->GetTimerManager().SetTimer(DelayHandle, this, &ACelestialTutorialPromptManager::AdvanceToNextPrompt, 0.5f, false);
+		}
+	}
+}
+
+
+void ACelestialTutorialPromptManager::AdvanceToNextPrompt()
+{
+	CurrentPromptIndex++;
+	ShowNextPrompt();
+}
+
+void ACelestialTutorialPromptManager::HandlePromptInput(const FInputActionInstance& ActionInstance)
+{
+	if (!Prompts.IsValidIndex(CurrentPromptIndex)) return;
+
+	const FPromptData& CurrentPrompt = Prompts[CurrentPromptIndex];
+	if (ActionInstance.GetSourceAction() == CurrentPrompt.InputAction)
+	{
+		AdvancePromptFromController();
 	}
 }

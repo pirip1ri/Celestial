@@ -22,7 +22,7 @@ public:
 
   
     virtual void HideMenu(bool bUnpauseGame = false);
-
+    FTimerHandle ShowMenuTimerHandle;
 protected:
     virtual void NativeOnInitialized() override;
     virtual void OnMenuOpened();  

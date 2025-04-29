@@ -10,24 +10,26 @@
 #include "Rotatereflecter.h"
 #include "CelestialTutorialPromptManager.h"
 #include "InspectInteractable.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 void ACelestialPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Add the IMC
+    // Add the IMC (Input Mapping Context) if available
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
     {
-        Subsystem->AddMappingContext(DefaultMappingContext, 0);
+        Subsystem->AddMappingContext(DefaultMappingContext, 0);  // Add the default input mapping context
     }
 
-    
-
-    // Get reference to PromptManager
+    // Get reference to PromptManager for tutorial prompt handling
     ACelestialTutorialPromptManager* PromptManager = Cast<ACelestialTutorialPromptManager>(
         UGameplayStatics::GetActorOfClass(GetWorld(), ACelestialTutorialPromptManager::StaticClass())
     );
 
+    // Bind tutorial actions if the PromptManager exists
     if (PromptManager && InputComponent)
     {
         if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
@@ -37,26 +39,26 @@ void ACelestialPlayerController::BeginPlay()
             {
                 if (Prompt.InputAction)
                 {
-                    EnhancedInput->BindAction(Prompt.InputAction, ETriggerEvent::Started, PromptManager, &ACelestialTutorialPromptManager::AdvancePromptFromController);
+                    // Bind the input actions for tutorial prompts
+                    EnhancedInput->BindAction(Prompt.InputAction, ETriggerEvent::Triggered, PromptManager, &ACelestialTutorialPromptManager::HandlePromptInput);
                 }
             }
         }
     }
-}
 
+    // Start the tutorial when BeginPlay() is called (Optional)
+    StartTutorial();
+}
 
 void ACelestialPlayerController::HandleTutorialNextStep(const FInputActionInstance& Instance)
 {
     if (bTutorialModeActive)
     {
-        UE_LOG(LogTemp, Log, TEXT("Tutorial step triggered!"));
-
-        // Your tutorial logic here ( progress to next step)
+        // Proceed to the next tutorial step
         AdvanceTutorialStep();
     }
 }
 
-int32 TutorialStep = 0;
 void ACelestialPlayerController::AdvanceTutorialStep()
 {
     TutorialStep++;
@@ -65,70 +67,83 @@ void ACelestialPlayerController::AdvanceTutorialStep()
     {
     case 1:
         UE_LOG(LogTemp, Log, TEXT("Step 1: Move forward."));
+        // Optionally, update UI or give additional instructions for this step
         break;
     case 2:
         UE_LOG(LogTemp, Log, TEXT("Step 2: Jump."));
         break;
     case 3:
         UE_LOG(LogTemp, Log, TEXT("Tutorial complete."));
-        bTutorialModeActive = false;
+        bTutorialModeActive = false;  // End tutorial when all steps are completed
         break;
     }
 }
 
-
-void ACelestialPlayerController::SetupInputComponent()
+void ACelestialPlayerController::StartTutorial()
 {
-    Super::SetupInputComponent();
+    bTutorialModeActive = true;  // Enable tutorial mode
+    TutorialStep = 0;           // Reset tutorial step counter
+    AdvanceTutorialStep();      // Start with the first tutorial step
+}
 
-    // Enhanced Input Component
-    if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
+    void ACelestialPlayerController::SetupInputComponent()
     {
-        // Bind Movement
-        EnhancedInput->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::MoveForward);
-        EnhancedInput->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::MoveRight);
+        Super::SetupInputComponent();
 
-        // Bind Looking
-        EnhancedInput->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::LookUp);
-        EnhancedInput->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::Turn);
+        // Enhanced Input Component
+        if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
+        {
+            // Bind Movement
+            EnhancedInput->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::MoveForward);
+            EnhancedInput->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::MoveRight);
 
-        // Bind Sprint
-        EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Sprint);
-        EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Sprint);
+            // Bind Looking
+            EnhancedInput->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::LookUp);
+            EnhancedInput->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::Turn);
 
-        // Bind Dash
-        EnhancedInput->BindAction(DashAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Dash);
+            // Bind Sprint
+            EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Sprint);
+            EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Sprint);
 
-        // Bind Crouch
-        EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Crouch);
-        EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Crouch);
+            // Bind Dash
+            EnhancedInput->BindAction(DashAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Dash);
 
-        // Bind Interact
-        EnhancedInput->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::InteractWithObject);
-        //EnhancedInput->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::EndInteraction);
+            // Bind Crouch
+            EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Started, this, &ACelestialPlayerController::Crouch);
+            EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::Crouch);
 
-        // Bind the pause action
-        EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ACelestialPlayerController::TogglePause);
+            // Bind Interact
+            EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ACelestialPlayerController::InteractWithObject);
+          //  EnhancedInput->BindAction(ExitInspectionAction, ETriggerEvent::Started, this, &ACelestialPlayerController::CancelInspectInput);
+          
+            
+        
+            // Bind the pause action
+            EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ACelestialPlayerController::TogglePause);
    
 
-        // Bind Crouch
-        EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACelestialPlayerController::JumpFunction);
-        EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::JumpStopFunction);
-        // for mouseinteraction input
-        EnhancedInput->BindAction(MouseTurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::Test);
+            // Bind Crouch
+            EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACelestialPlayerController::JumpFunction);
+            EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::JumpStopFunction);
+            // for mouseinteraction input
+            EnhancedInput->BindAction(MouseTurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::HandleReflectors);
         
-        if (TutorialNextAction)
-        {
-            EnhancedInput->BindAction(TutorialNextAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::HandleTutorialNextStep);
+            if (TutorialNextAction)
+            {
+                EnhancedInput->BindAction(TutorialNextAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::HandleTutorialNextStep);
+            }
         }
     }
-}
 
 
 void ACelestialPlayerController::MoveForward(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
+        if (bTutorialModeActive)
+        {
+            return;
+        }
         float ForwardValue = Value.Get<float>(); // Get the input value as a float
         PlayerCharacter->MoveForward(ForwardValue);
     }
@@ -138,6 +153,10 @@ void ACelestialPlayerController::MoveRight(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
+        if (bTutorialModeActive)
+        {
+            return;
+        }
         float RightValue = Value.Get<float>();
         PlayerCharacter->MoveRight(RightValue);
     }
@@ -147,6 +166,10 @@ void ACelestialPlayerController::LookUp(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
+        if (bTutorialModeActive)
+        {
+            return;
+        }
         float LookUpValue = Value.Get<float>();
         PlayerCharacter->LookUp(LookUpValue);
     }
@@ -156,6 +179,10 @@ void ACelestialPlayerController::Turn(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
+        if (bTutorialModeActive)
+        {
+            return;
+        }
         float TurnValue = Value.Get<float>();
         PlayerCharacter->Turn(TurnValue);
     }
@@ -180,6 +207,10 @@ void ACelestialPlayerController::Dash(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
+        if (bTutorialModeActive)
+        {
+            return;
+        }
         PlayerCharacter->PlayDashMontage();
     }
 }
@@ -188,6 +219,10 @@ void ACelestialPlayerController::Crouch(const FInputActionValue& Value)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
+        if (bTutorialModeActive)
+        {
+            return;
+        }
         if (Value.Get<bool>())
         {
             PlayerCharacter->StartCrouch();
@@ -202,6 +237,10 @@ void ACelestialPlayerController::Crouch(const FInputActionValue& Value)
 
 void ACelestialPlayerController::JumpFunction()
 {
+    if (bTutorialModeActive)
+    {
+        return;
+    }
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
         PlayerCharacter->Jump();
@@ -220,29 +259,48 @@ void ACelestialPlayerController::InteractWithObject()
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
-        if (ActiveReflector)
+        ARotatereflecter* HitReflector = Cast<ARotatereflecter>(PlayerCharacter->HitResult.GetActor());
+
+        if (HitReflector)
         {
-            if (ActiveReflector->IsInteracting())
+            
+            if (ActiveReflector != HitReflector)
             {
-                ActiveReflector->EndInteraction();
-                SetActiveReflector(nullptr);
+                //SetActiveReflector(HitReflector);
+                PlayerCharacter->Interact();
+                PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
+
             }
             else
             {
-                PlayerCharacter->Interact();
+                if (!IsInteracting())
+                {
+                    EndInteraction();
+                    SetActiveReflector(nullptr);
+                    PlayerCharacter->CameraBoom->bUsePawnControlRotation = true;
+                }
             }
+           
+            
+            
         }
         else
         {
-            PlayerCharacter->Interact();
+            if (AInspectInteractable* I = Cast<AInspectInteractable>(PlayerCharacter->HitResult.GetActor()))
+            {
+
+                I->InteractAbility_Implementation();
+            }
         }
     }
+   
 }
-bool ARotatereflecter::IsInteracting() const
+
+bool ACelestialPlayerController::IsInteracting() const
 {
     return bIsInteracting;
 }
-void ARotatereflecter::EndInteraction()
+void ACelestialPlayerController::EndInteraction()
 {
     bIsInteracting = false;
 }
@@ -259,11 +317,10 @@ void ACelestialPlayerController::TogglePause()
             true,
             FText::FromString("Paused"),
             nullptr,               
-            true                  
+            true,
+            false
         );
     }
-
-
 
 
     /*
@@ -280,13 +337,9 @@ void ACelestialPlayerController::TogglePause()
     */
 }
 
-void ACelestialPlayerController::EndInteraction()
-{
-    if (AInspectInteractable* I = Cast<AInspectInteractable>(this))
-    {
-        I->EndInspection();
-    }  
-}
+
+
+
 
 void ACelestialPlayerController::SetInputModeForPause(bool bIsPaused)
 {
@@ -306,11 +359,11 @@ void ACelestialPlayerController::SetInputModeForPause(bool bIsPaused)
     */
 }
 // mouse input x/y if needed
-void ACelestialPlayerController::Test(const FInputActionValue& Value)
+void ACelestialPlayerController:: HandleReflectors(const FInputActionValue& Value)
 {
     const FVector2D AxisValue = Value.Get<FVector2D>(); 
 
-    // Apply to reflector
+    
     TurnReflector(AxisValue.X);       
     LookUpReflector(AxisValue.Y);
 }

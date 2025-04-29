@@ -19,17 +19,19 @@ void UMenuBaseWidget::ShowMenu(bool bPauseGame, bool bUIOnlyInput, float Delay)
     }
     else
     {
+        
+        GetWorld()->GetTimerManager().ClearTimer(ShowMenuTimerHandle);
+
         FTimerDelegate TimerCallback;
         TimerCallback.BindLambda([this, bPauseGame, bUIOnlyInput]()
         {
             InternalShowMenu(bPauseGame, bUIOnlyInput);
         });
 
-        FTimerHandle TimerHandle;
-        GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerCallback, Delay, false);
+       
+        GetWorld()->GetTimerManager().SetTimer(ShowMenuTimerHandle, TimerCallback, Delay, false);
     }
 }
-
 
 void UMenuBaseWidget::InternalShowMenu(bool bPauseGame, bool bUIOnlyInput)
 {

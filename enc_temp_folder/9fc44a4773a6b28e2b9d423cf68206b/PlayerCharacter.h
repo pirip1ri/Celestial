@@ -64,7 +64,7 @@ public:
 	FVector DefaultCameraBoomLocation;
 	FRotator DefaultCameraBoomRotation;
 
-	
+
 	FHitResult HitResult;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -133,14 +133,5 @@ private:
 	float CameraResetDuration = 0.5f; // Half second to reset
 	float StartingArmLength;
 	FRotator StartingBoomRotation;
-	
-	FRotator TargetBoomRotation;
 
-
-
-	float StartingFOV;
-	float TargetFOV;
-	float FOVResetTimer = 0.f;
-	float FOVResetDuration = 0.4f; // Adjust speed
-	bool bIsResettingFOV = false;
 };

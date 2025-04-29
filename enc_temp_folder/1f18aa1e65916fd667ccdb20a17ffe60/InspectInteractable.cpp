@@ -67,29 +67,21 @@ void AInspectInteractable::Tick(float DeltaTime)
 
     if (bIsInspecting && TargetPlayer && InspectCameraAnchor)
     {
-        USpringArmComponent* CameraBoom = TargetPlayer->CameraBoom;
-        if (!CameraBoom) return;
-
         FVector TargetLocation = InspectCameraAnchor->GetComponentLocation();
         FRotator TargetRotation = InspectCameraAnchor->GetComponentRotation();
 
-        // Compute local transform relative to the player
-        FVector RelativeTargetLocation = TargetPlayer->GetActorTransform().InverseTransformPosition(TargetLocation);
-        FRotator RelativeTargetRotation = TargetRotation - TargetPlayer->GetActorRotation();
+        FVector CurrentLocation = TargetPlayer->CameraBoom->GetComponentLocation();
+        FRotator CurrentRotation = TargetPlayer->CameraBoom->GetComponentRotation();
+        float CurrentArmLength = TargetPlayer->CameraBoom->TargetArmLength;
 
-        // Interpolate relative offset and rotation
-        FVector NewSocketOffset = FMath::VInterpTo(CameraBoom->SocketOffset, RelativeTargetLocation, DeltaTime, 5.0f);
-        FRotator NewRelativeRotation = FMath::RInterpTo(CameraBoom->GetRelativeRotation(), RelativeTargetRotation, DeltaTime, 5.0f);
-        float NewArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, InspectArmLength, DeltaTime, 5.0f);
+        FVector NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, 5.0f);
+        FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, 5.0f);
+        float NewArmLength = FMath::FInterpTo(CurrentArmLength, InspectArmLength, DeltaTime, 5.0f);
 
-        // Apply changes
-        CameraBoom->SocketOffset = NewSocketOffset;
-        CameraBoom->SetRelativeRotation(NewRelativeRotation);
-        CameraBoom->TargetArmLength = NewArmLength;
-
-        // DO NOT set world location/rotation manually — keep bDoCollisionTest enabled
+        TargetPlayer->CameraBoom->SetWorldLocation(NewLocation);
+        TargetPlayer->CameraBoom->SetWorldRotation(NewRotation);
+        TargetPlayer->CameraBoom->TargetArmLength = NewArmLength;
     }
-
 }
 
 

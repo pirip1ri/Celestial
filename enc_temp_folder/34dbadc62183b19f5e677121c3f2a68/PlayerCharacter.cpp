@@ -61,7 +61,7 @@ APlayerCharacter::APlayerCharacter()
 
 	// Correct collision setup
 	CameraBoom->bDoCollisionTest = true;
-	CameraBoom->ProbeSize = 8.0f;
+	CameraBoom->ProbeSize = 14.0f;
 	CameraBoom->ProbeChannel = ECC_Camera;
 
 
@@ -101,7 +101,9 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
-	
+	CameraBoom->bDoCollisionTest = true;
+	 
+	CameraBoom->ProbeChannel = ECC_Camera; 
 
 }
 
@@ -170,25 +172,28 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 
 	//for inspecton
+
+
 	if (bIsResettingCamera)
 	{
 		CameraResetTimer += DeltaTime;
 
-		const float Alpha = FMath::Clamp(CameraResetTimer / CameraResetDuration, 0.f, 1.f);
-		const float SmoothAlpha = FMath::InterpEaseInOut(0.f, 1.f, Alpha, 2.0f);
+		float Alpha = FMath::Clamp(CameraResetTimer / CameraResetDuration, 0.f, 1.f);
+		float SmoothedAlpha = FMath::InterpEaseInOut(0.f, 1.f, Alpha, 2.f);
 
-		// Interpolate arm length and rotation
-		CameraBoom->TargetArmLength = FMath::Lerp(StartingArmLength, DefaultArmLength, SmoothAlpha);
-		CameraBoom->SetRelativeRotation(FMath::Lerp(StartingBoomRotation, TargetBoomRotation, SmoothAlpha));
+		CameraBoom->TargetArmLength = FMath::Lerp(StartingArmLength, DefaultArmLength, SmoothedAlpha);
 
-		// Stop resetting once done
-		if (Alpha >= 1.f)
+		if (Alpha >= 1.0f)
 		{
+			// Re-enable collision after transition is done
+			CameraBoom->bDoCollisionTest = true;
+			CameraBoom->ProbeSize = 20.f;
+			
+
 			bIsResettingCamera = false;
 		}
+
 	}
-
-
 
 
 
@@ -342,40 +347,33 @@ void APlayerCharacter::TryInteract()
 		}
 	}
 }
-
 void APlayerCharacter::ResetCameraAfterInspect()
 {
 	if (!CameraBoom) return;
 
-	// Ensure collision is active
+	
 	CameraBoom->bDoCollisionTest = true;
 
-	// Cache current values
-	StartingArmLength = CameraBoom->TargetArmLength;
-	StartingBoomRotation = CameraBoom->GetRelativeRotation();
 	
-	// Target values
-	TargetBoomRotation = DefaultCameraBoomRotation;
+	CameraBoom->bUsePawnControlRotation = true;
 
+	CameraBoom->SetRelativeRotation(DefaultCameraBoomRotation);
+	
+	
 	bIsResettingCamera = true;
 	CameraResetTimer = 0.f;
-	CameraBoom->ProbeSize = 8.0f;
+	StartingArmLength = CameraBoom->TargetArmLength= 300;
 }
-
-
 
 
 void APlayerCharacter::SaveCameraDefaults()
 {
 	if (CameraBoom)
 	{
-		CameraBoom->ProbeSize = 8.0f;
-		CameraBoom->bDoCollisionTest = true;
-		DefaultArmLength = CameraBoom->TargetArmLength;
+		DefaultArmLength = CameraBoom->TargetArmLength =300;
 		DefaultCameraBoomRotation = CameraBoom->GetRelativeRotation();
 	}
 }
-
 
 
 
