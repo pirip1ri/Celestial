@@ -124,6 +124,11 @@ void ACelestialPlayerController::StartTutorial()
 
             // Bind Crouch
             EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &ACelestialPlayerController::JumpFunction);
+            EnhancedInput->BindAction(BeemAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::OnBeamPressed);
+            EnhancedInput->BindAction(BeemAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::OnBeamReleased);
+            EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Started, this, &ACelestialPlayerController::ToggleCharacterZoom);
+            EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::ToggleCharacterZoom);
+
             EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::JumpStopFunction);
             // for mouseinteraction input
             EnhancedInput->BindAction(MouseTurnAction, ETriggerEvent::Triggered, this, &ACelestialPlayerController::HandleReflectors);
@@ -259,43 +264,40 @@ void ACelestialPlayerController::InteractWithObject()
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
-        ARotatereflecter* HitReflector = Cast<ARotatereflecter>(PlayerCharacter->HitResult.GetActor());
+        AActor* HitActor = PlayerCharacter->HitResult.GetActor();
+        if (!HitActor)
+            return;
 
-        if (HitReflector)
+
+        if (IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitActor))
         {
-            
-            if (ActiveReflector != HitReflector)
+            // Only update ActiveReflector if it's a reflector
+            if (ARotatereflecter* HitReflector = Cast<ARotatereflecter>(HitActor))
             {
-                //SetActiveReflector(HitReflector);
-                PlayerCharacter->Interact();
-                PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
-
-            }
-            else
-            {
-                if (!IsInteracting())
+                if (ActiveReflector != HitReflector)
+                {
+                    SetActiveReflector(HitReflector);
+                    PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
+                }
+                else if (!IsInteracting())
                 {
                     EndInteraction();
                     SetActiveReflector(nullptr);
                     PlayerCharacter->CameraBoom->bUsePawnControlRotation = true;
+
                 }
             }
-           
-            
-            
+            //Interactable->OnInteract(PlayerCharacter);
         }
         else
         {
-            if (AInspectInteractable* I = Cast<AInspectInteractable>(PlayerCharacter->HitResult.GetActor()))
-            {
-
-                I->InteractAbility_Implementation();
-            }
+            // Fallback for non-interactable actors
+            PlayerCharacter->Interact();
         }
     }
-   
 }
-
+            
+        
 bool ACelestialPlayerController::IsInteracting() const
 {
     return bIsInteracting;
@@ -304,6 +306,22 @@ void ACelestialPlayerController::EndInteraction()
 {
     bIsInteracting = false;
 }
+void ACelestialPlayerController::OnBeamPressed()
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        PlayerCharacter->StartBeam();
+    }
+}
+
+void ACelestialPlayerController::OnBeamReleased()
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        PlayerCharacter->StopBeam();
+    }
+}
+
 void ACelestialPlayerController::TogglePause()
 {
     if (!PauseWidget)
@@ -367,6 +385,13 @@ void ACelestialPlayerController:: HandleReflectors(const FInputActionValue& Valu
     TurnReflector(AxisValue.X);       
     LookUpReflector(AxisValue.Y);
 }
+void ACelestialPlayerController::ToggleCharacterZoom()
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        PlayerCharacter->ToggleZoom();
+    }
+}
 void ACelestialPlayerController::LookUpReflector(float Value)
 {
     if (ActiveReflector && FMath::Abs(Value) > KINDA_SMALL_NUMBER)
@@ -385,8 +410,26 @@ void ACelestialPlayerController::TurnReflector(float Value)
     }
 }
 
+void ACelestialPlayerController::ApplyCameraZoomAndTilt(bool bZoomOut)
+{
+    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    {
+        USpringArmComponent* CameraBoom = PlayerCharacter->CameraBoom;
+        if (!CameraBoom) return;
+
+        float TargetArmLength = bZoomOut ? 700.0f : 300.0f;
+        FRotator TargetRotation = bZoomOut ? FRotator(-10.0f, 0.0f, 0.0f) : FRotator(0.0f, 0.0f, 0.0f);
+        float SocketOffsetZ = bZoomOut ? 100.0f : 0.0f; // Lift camera during zoom out
+
+        CameraBoom->TargetArmLength = TargetArmLength;
+        CameraBoom->SetRelativeRotation(TargetRotation);
+        CameraBoom->SocketOffset = FVector(0.0f, 0.0f, SocketOffsetZ); // This moves the camera up/down
+    }
+}
+
 
 void ACelestialPlayerController::SetActiveReflector(ARotatereflecter* Reflector)
 {
     ActiveReflector = Reflector;
+    ApplyCameraZoomAndTilt(Reflector != nullptr);
 }

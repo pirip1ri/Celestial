@@ -66,7 +66,13 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* MouseTurnAction;
      UPROPERTY(EditDefaultsOnly, Category = "Input")
-    UInputAction* ExitInspectionAction;
+    UInputAction* ExitInspectionAction; 
+    
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* BeemAction;  
+    
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* ZoomAction;
 
     UPROPERTY()
     UPauseMenuWidget* PauseWidget;
@@ -86,6 +92,7 @@ private:
     void Dash(const FInputActionValue& Value);
     void Crouch(const FInputActionValue& Value);
     void HandleReflectors(const FInputActionValue& Value);
+    void ToggleCharacterZoom();
     void JumpFunction();
     void JumpStopFunction();
     void InteractWithObject();
@@ -93,7 +100,10 @@ private:
     void  TurnReflector(float Value);
     void LookUpReflector(float Value);
     void EndInteraction();
-    // Pause the game
+    void OnBeamPressed();
+    void OnBeamReleased();
+  
+  
     void TogglePause();
     void ToggleInspect();
     // Helper function to set input mode
@@ -113,7 +123,9 @@ public:
     UPROPERTY()
     AInspectInteractable* CurrentInspectInteractable;
    
-   void SetActiveReflector(class ARotatereflecter* Reflector);
+    void ApplyCameraZoomAndTilt(bool bZoomOut);
+
+    void SetActiveReflector(class ARotatereflecter* Reflector);
   //virtual  void Tick(float DeltaTime)override;
    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
    bool bTriggerWhenPaused = true;

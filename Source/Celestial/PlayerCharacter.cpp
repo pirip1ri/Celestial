@@ -71,6 +71,15 @@ APlayerCharacter::APlayerCharacter()
 	FollowCamera->bUsePawnControlRotation = false;
     // Replace the line causing the error with the following code  
    
+	BeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BeamMesh"));
+	BeamMesh->SetupAttachment(GetMesh(), ChestSocketName);
+	BeamMesh->SetRelativeLocation(FVector::ZeroVector);
+	BeamMesh->SetRelativeRotation(FRotator::ZeroRotator);
+
+	// Initially hide and scale beam to zero length
+	BeamMesh->SetVisibility(false);
+	BeamMesh->SetRelativeScale3D(FVector(0.f, 1.f, 1.f));
+
 	bCanDash = true;
 }
 
@@ -101,7 +110,8 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
-	
+	CameraBoom->TargetArmLength = ArmLength;
+	CameraBoom->SocketOffset = NormalArmOffset;
 
 }
 
@@ -129,7 +139,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		Params
 	);
 
-	if (bToggleDebugVisualiser)
+	/*if (bToggleDebugVisualiser)
 	{
 		DrawDebugCapsule(
 			GetWorld(),
@@ -141,7 +151,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 			false,
 			0.1f
 		);
-	}
+	}*/
 
 	AInteractable* HitInteractable = bHit ? Cast<AInteractable>(HitResult.GetActor()) : nullptr;
 
@@ -169,32 +179,59 @@ void APlayerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	//for inspecton
-	if (bIsResettingCamera)
+	UpdateBeam(DeltaTime);
+	UpdateZoom(DeltaTime);
+
+
+}
+void APlayerCharacter::UpdateBeam(float DeltaTime)
+{
+	if (!BeamMesh || !BeamMesh->IsVisible())
+		return;
+
+	const float TargetLength = bIsBeamActive ? BeamMaxLength : 0.f;
+
+	// Linear interpolation at a constant rate
+	CurrentBeamLength = FMath::FInterpConstantTo(CurrentBeamLength, TargetLength, DeltaTime, BeamGrowthSpeed);
+
+	const float BeamScaleZ = CurrentBeamLength / 300.f; // Adjust for your mesh's original size
+	BeamMesh->SetRelativeScale3D(FVector(0.5f,0.5f, BeamScaleZ));
+	BeamMesh->SetRelativeLocation(FVector(0.f, 0.f, -50.f * BeamScaleZ));
+
+	// Align with chest socket
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
-		CameraResetTimer += DeltaTime;
-
-		const float Alpha = FMath::Clamp(CameraResetTimer / CameraResetDuration, 0.f, 1.f);
-		const float SmoothAlpha = FMath::InterpEaseInOut(0.f, 1.f, Alpha, 2.0f);
-
-		// Interpolate arm length and rotation
-		CameraBoom->TargetArmLength = FMath::Lerp(StartingArmLength, DefaultArmLength, SmoothAlpha);
-		CameraBoom->SetRelativeRotation(FMath::Lerp(StartingBoomRotation, TargetBoomRotation, SmoothAlpha));
-
-		// Stop resetting once done
-		if (Alpha >= 1.f)
-		{
-			bIsResettingCamera = false;
-		}
+		const FTransform SocketTransform = MeshComp->GetSocketTransform(ChestSocketName, RTS_World);
+		FRotator BeamRotation = SocketTransform.GetRotation().Rotator();
+		BeamRotation.Pitch -= 15.f;
+		BeamMesh->SetWorldRotation(BeamRotation);
 	}
 
-
-
+	if (CurrentBeamLength <= KINDA_SMALL_NUMBER && !bIsBeamActive)
+	{
+		BeamMesh->SetVisibility(false);
+	}
 
 
 }
 
+void APlayerCharacter::StartBeam()
+{
+	bIsBeamActive = true;
 
+	if (!BeamMesh->IsVisible())
+	{
+		BeamMesh->SetVisibility(true);
+	}
+
+	// Optional reset
+	// CurrentBeamLength = 0.f;
+}
+
+void APlayerCharacter::StopBeam()
+{
+	bIsBeamActive = false;
+}
 
 void APlayerCharacter::Interact()
 {
@@ -371,12 +408,35 @@ void APlayerCharacter::SaveCameraDefaults()
 	{
 		CameraBoom->ProbeSize = 8.0f;
 		CameraBoom->bDoCollisionTest = true;
-		DefaultArmLength = CameraBoom->TargetArmLength;
+		InitialArmLength = CameraBoom->TargetArmLength;
 		DefaultCameraBoomRotation = CameraBoom->GetRelativeRotation();
 	}
 }
 
 
 
+void APlayerCharacter::ToggleZoom()
+{
+	bIsZoomedIn = !bIsZoomedIn;
+}
 
+void APlayerCharacter::UpdateZoom(float DeltaTime)
+{
+	if (!FollowCamera || !CameraBoom)
+		return;
 
+	// FOV Interpolation
+	 TargetFOV = bIsZoomedIn ? ZoomedFOV : DefaultFOV;
+	float NewFOV = FMath::FInterpTo(FollowCamera->FieldOfView, TargetFOV, DeltaTime, CameraZoomSpeed);
+	FollowCamera->SetFieldOfView(NewFOV);
+
+	// Arm Length Interpolation
+	float TargetArmLength = bIsZoomedIn ? ZoomedArmLength : ArmLength;
+	float NewArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, TargetArmLength, DeltaTime, CameraZoomSpeed);
+	CameraBoom->TargetArmLength = NewArmLength;
+
+	// Socket Offset Interpolation (for shoulder effect)
+	FVector TargetOffset = bIsZoomedIn ? ZoomedArmOffset : NormalArmOffset;
+	FVector NewOffset = FMath::VInterpTo(CameraBoom->SocketOffset, TargetOffset, DeltaTime, CameraZoomSpeed);
+	CameraBoom->SocketOffset = NewOffset;
+}

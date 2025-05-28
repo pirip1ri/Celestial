@@ -30,31 +30,25 @@ void ARotatereflecter::Tick(float DeltaTime)
         FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, 10.0f);
         MeshComponent->SetWorldRotation(NewRotation);
 
-        if (NewRotation.Equals(TargetRotation, 0.1f))
+        // Check if we're very close to the target rotation
+        if (NewRotation.Equals(TargetRotation, 0.5f) || NewRotation.ContainsNaN())
         {
+            MeshComponent->SetWorldRotation(TargetRotation); // Snap to final rotation
             bShouldRotate = false;
+           
         }
     }
 }
 
 
-void ARotatereflecter::InteractAbility_Implementation()
-{
-    Super::InteractAbility_Implementation();
-  
-
-   APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    ACelestialPlayerController* CelestialPC = Cast<ACelestialPlayerController>(PC);
-    if (CelestialPC)
-    {
-        CelestialPC->SetActiveReflector(this);
-        TargetRotation = MeshComponent->GetComponentRotation();
-        bIsInteracting = true;
-    }
-   //InteractWithReflector();
-    /*AddYawInput(400);
-    AddPitchInput(400);*/
-}
+//OLD
+//void ARotatereflecter::InteractAbility_Implementation()
+//{
+//    Super::InteractAbility_Implementation();
+//  
+//
+//  
+//}
 
 void ARotatereflecter::InteractWithReflector()
 {
@@ -85,7 +79,22 @@ void ARotatereflecter::RotateReflector(FString Direction)
     }
 
     TargetRotation.Normalize();
-    bShouldRotate = true;
+    //bShouldRotate = true;
+}
+void ARotatereflecter::OnInteract(APlayerCharacter* PlayerCharacter)
+{
+    
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    ACelestialPlayerController* CelestialPC = Cast<ACelestialPlayerController>(PC);
+    if (CelestialPC)
+    {
+        CelestialPC->SetActiveReflector(this);
+        TargetRotation = MeshComponent->GetComponentRotation();
+        bIsInteracting = true;
+    }
+    //InteractWithReflector();
+     /*AddYawInput(400);
+     AddPitchInput(400);*/
 }
 //bool ARotatereflecter::IsInteracting() const
 //{
@@ -148,12 +157,21 @@ void ARotatereflecter::ReflectBeam(FVector HitPoint, FVector IncomingDirection, 
 }
 void ARotatereflecter::AddYawInput(float DeltaYaw)
 {
-    TargetRotation.Yaw += DeltaYaw;
-    bShouldRotate = true;
+    if (!FMath::IsNearlyZero(DeltaYaw))
+    {
+        TargetRotation.Yaw += DeltaYaw;
+        bShouldRotate = true;
+    }
 }
+
+
 
 void ARotatereflecter::AddPitchInput(float DeltaPitch)
 {
-    TargetRotation.Pitch = FMath::Clamp(TargetRotation.Pitch + DeltaPitch, -80.0f, 80.0f);
-    bShouldRotate = true;
+    float NewPitch = FMath::Clamp(TargetRotation.Pitch + DeltaPitch, -80.0f, 80.0f);
+    if (!FMath::IsNearlyEqual(NewPitch, TargetRotation.Pitch))
+    {
+        TargetRotation.Pitch = NewPitch;
+        bShouldRotate = true;
+    }
 }
