@@ -29,9 +29,12 @@ public:
   AInteractableDoor();
 
  virtual void InteractAbility_Implementation()override;
-
+ bool GetbIsTriggerPuzzle() { return bIsTriggerByPuzzle; }
   UPROPERTY(EditAnywhere, Category = "Door")  
   FName RequiredKeyID;  
+
+protected:
+    bool bIsTriggerByPuzzle;
 
 private:  
   UPROPERTY(EditAnywhere, Category = "Door")  
@@ -39,7 +42,7 @@ private:
 
   UPROPERTY(BlueprintAssignable, Category = "Door")  
   FOnDoorStateChanged OnDoorStateChanged;  
-
+protected:
   UFUNCTION(BlueprintCallable, Category = "Door")  
   void SetDoorState(EDoorState NewState);  
 

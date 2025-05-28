@@ -12,6 +12,7 @@
 /**
  * 
  */
+class UImage;
 UCLASS()
 class CELESTIAL_API UPauseMenuWidget : public UMenuBaseWidget
 {
@@ -19,11 +20,20 @@ class CELESTIAL_API UPauseMenuWidget : public UMenuBaseWidget
 
 public:
     void TogglePauseMenu();
+    void ToggleOtherMenu();
 
     virtual void OnMenuOpened() override;
     virtual void OnMenuClosed() override;
+    void ToggleContextualMenu(bool bShow, const FText& Message, UTexture2D* OptionalImage, bool bShowPauseButtons, bool bIsInspectionMenu);
+    bool bContextualMenuPending = false;
+    UPROPERTY(meta = (BindWidget))
+    UImage* InspectImage;
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* Text;
+
 protected:
     virtual void NativeOnInitialized() override;
+
  
 private:
     bool bIsVisible = false;
@@ -36,10 +46,8 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UButton* MainMenuButton;
     
-    UPROPERTY(meta = (BindWidget))
-    UTextBlock* Text;
-
-  
+    UPROPERTY(meta = (BindWidgetOptional))
+    UButton* ExitInspectButton;
 
     UFUNCTION()
     void OnResumeClicked();
@@ -47,4 +55,9 @@ private:
     void OnMainMenuClicked();
     UFUNCTION()
     void OnQuitClicked();
+   // void ClearContextualMenuContent();
+    UFUNCTION()
+    void OnExitInspectClicked();
+    FTimerHandle ContextualMenuTimerHandle;
+    bool bIsExitingInspection = false;
 };

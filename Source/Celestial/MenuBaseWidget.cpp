@@ -11,10 +11,30 @@ void UMenuBaseWidget::NativeOnInitialized()
    
     SetVisibility(ESlateVisibility::Hidden);
 }
-
-void UMenuBaseWidget::ShowMenu(bool bPauseGame, bool bUIOnlyInput)
+void UMenuBaseWidget::ShowMenu(bool bPauseGame, bool bUIOnlyInput, float Delay)
 {
-   
+    if (Delay <= 0.f)
+    {
+        InternalShowMenu(bPauseGame, bUIOnlyInput);
+    }
+    else
+    {
+        
+        GetWorld()->GetTimerManager().ClearTimer(ShowMenuTimerHandle);
+
+        FTimerDelegate TimerCallback;
+        TimerCallback.BindLambda([this, bPauseGame, bUIOnlyInput]()
+        {
+            InternalShowMenu(bPauseGame, bUIOnlyInput);
+        });
+
+       
+        GetWorld()->GetTimerManager().SetTimer(ShowMenuTimerHandle, TimerCallback, Delay, false);
+    }
+}
+
+void UMenuBaseWidget::InternalShowMenu(bool bPauseGame, bool bUIOnlyInput)
+{
     if (!IsInViewport())
     {
         AddToViewport();
@@ -25,7 +45,6 @@ void UMenuBaseWidget::ShowMenu(bool bPauseGame, bool bUIOnlyInput)
     APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (PC)
     {
-        
         if (bUIOnlyInput)
         {
             FInputModeUIOnly InputMode;
@@ -44,14 +63,14 @@ void UMenuBaseWidget::ShowMenu(bool bPauseGame, bool bUIOnlyInput)
         PC->bShowMouseCursor = true;
     }
 
-
     if (bPauseGame)
     {
         UGameplayStatics::SetGamePaused(GetWorld(), true);
     }
 
-    OnMenuOpened(); 
+    OnMenuOpened();
 }
+
 
 void UMenuBaseWidget::HideMenu(bool bUnpauseGame)
 {

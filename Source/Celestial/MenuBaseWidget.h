@@ -16,11 +16,13 @@ class CELESTIAL_API UMenuBaseWidget : public UUserWidget
 	GENERATED_BODY()
 public:
 
-    virtual void ShowMenu(bool bPauseGame = false, bool bUIOnlyInput = true);
+    virtual void ShowMenu(bool bPauseGame = false, bool bUIOnlyInput = true, float Delay = 0.0f);
+
+    void InternalShowMenu(bool bPauseGame, bool bUIOnlyInput);
 
   
     virtual void HideMenu(bool bUnpauseGame = false);
-
+    FTimerHandle ShowMenuTimerHandle;
 protected:
     virtual void NativeOnInitialized() override;
     virtual void OnMenuOpened();  
