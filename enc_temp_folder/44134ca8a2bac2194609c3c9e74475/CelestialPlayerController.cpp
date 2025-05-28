@@ -414,44 +414,22 @@ void ACelestialPlayerController::ApplyCameraZoomAndTilt(bool bZoomOut)
 {
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
     {
-        TargetArmLength = bZoomOut ? 700.0f : 300.0f;
-        TargetBoomRotation = bZoomOut ? FRotator(-25.0f, 0.0f, 0.0f) : FRotator::ZeroRotator;
-        TargetSocketOffset = bZoomOut ? FVector(0.0f, 0.0f, 100.0f) : FVector::ZeroVector;
-        bShouldZoom = true;
+        USpringArmComponent* CameraBoom = PlayerCharacter->CameraBoom;
+        if (!CameraBoom) return;
+
+        float TargetArmLength = bZoomOut ? 700.0f : 300.0f;
+        FRotator TargetRotation = bZoomOut ? FRotator(-10.0f, 0.0f, 0.0f) : FRotator(0.0f, 0.0f, 0.0f);
+        float SocketOffsetZ = bZoomOut ? 100.0f : 0.0f; // Lift camera during zoom out
+
+        CameraBoom->TargetArmLength = TargetArmLength;
+        CameraBoom->SetRelativeRotation(TargetRotation);
+        CameraBoom->SocketOffset = FVector(0.0f, 0.0f, SocketOffsetZ); // This moves the camera up/down
     }
 }
-
 
 
 void ACelestialPlayerController::SetActiveReflector(ARotatereflecter* Reflector)
 {
     ActiveReflector = Reflector;
     ApplyCameraZoomAndTilt(Reflector != nullptr);
-}
-
-
-void ACelestialPlayerController::Tick(float DeltaSeconds)
-{
-    Super::Tick(DeltaSeconds);
-
-    if (bShouldZoom)
-    {
-        if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
-        {
-            USpringArmComponent* CameraBoom = PlayerCharacter->CameraBoom;
-            if (!CameraBoom) return;
-
-            CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, TargetArmLength, DeltaSeconds, CameraZoomInterpSpeed);
-            CameraBoom->SetRelativeRotation(FMath::RInterpTo(CameraBoom->GetRelativeRotation(), TargetBoomRotation, DeltaSeconds, CameraZoomInterpSpeed));
-            CameraBoom->SocketOffset = FMath::VInterpTo(CameraBoom->SocketOffset, TargetSocketOffset, DeltaSeconds, CameraZoomInterpSpeed);
-
-            // Stop updating if we're close enough
-            if (FMath::IsNearlyEqual(CameraBoom->TargetArmLength, TargetArmLength, 0.5f) &&
-                CameraBoom->GetRelativeRotation().Equals(TargetBoomRotation, 0.5f) &&
-                CameraBoom->SocketOffset.Equals(TargetSocketOffset, 1.0f))
-            {
-                bShouldZoom = false;
-            }
-        }
-    }
 }

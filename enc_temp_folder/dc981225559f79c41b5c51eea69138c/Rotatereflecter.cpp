@@ -11,16 +11,7 @@
 ARotatereflecter::ARotatereflecter()
 {
     PrimaryActorTick.bCanEverTick = true;
-    MirrorStandMesh = CreateDefaultSubobject<UStaticMeshComponent>("stand");
 
-    Reflectiveball = CreateEditorOnlyDefaultSubobject<UStaticMeshComponent>(" Reflectiveball");
-    Reflectiveball->SetupAttachment(MeshComponent);
-    RootComponent->SetupAttachment(nullptr);
-    MirrorStandMesh->SetupAttachment(RootComponent);      
-    // Stay stationary
-    MeshComponent->SetupAttachment(RootComponent);
-
- 
    
 }
 
@@ -47,8 +38,6 @@ void ARotatereflecter::Tick(float DeltaTime)
            
         }
     }
-
-    
 }
 
 

@@ -126,15 +126,8 @@ public:
     void ApplyCameraZoomAndTilt(bool bZoomOut);
 
     void SetActiveReflector(class ARotatereflecter* Reflector);
-    virtual void  Tick(float DeltaSeconds) override;
   //virtual  void Tick(float DeltaTime)override;
    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
    bool bTriggerWhenPaused = true;
-
-   float TargetArmLength;
-   FRotator TargetBoomRotation;
-   FVector TargetSocketOffset;
-   bool bShouldZoom = false;
-   float CameraZoomInterpSpeed = 5.0f;
  
 };

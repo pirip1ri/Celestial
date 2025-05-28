@@ -36,17 +36,15 @@ virtual	void ReflectBeam(FVector HitPoint, FVector IncomingDirection, int32 Rema
 	UStaticMeshComponent* MirrorMesh;
 	
 	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* MirrorStandMesh;
-	
-	
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* Reflectiveball;
-	
-	UPROPERTY(EditAnywhere)
 	USceneComponent* Root;
 	bool bIsInteracting;
 	FRotator TargetRotation;
 
 
+	//bool IsInteracting() const;
+
+	//void StartInteraction();
+
+	//void EndInteraction();
 
 };
