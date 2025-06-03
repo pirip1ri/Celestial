@@ -14,4 +14,7 @@ class CELESTIAL_API ACelestialGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(BlueprintReadWrite, Category = "Collectables")
+	int GetLevelCollectableCount = 0;
 };

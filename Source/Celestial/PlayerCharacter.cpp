@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "LightBeamSpawnerComponent.h"
 #include "GameFramework/Controller.h"
 #include "Components/WidgetComponent.h"
 #include "CelestialPlayerController.h"
@@ -38,6 +39,12 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	SprintMultiplier = 1.5f;
 
+<<<<<<< HEAD
+=======
+	LightBeamSpawner = CreateDefaultSubobject<ULightBeamSpawnerComponent>(TEXT("LightBeamSpawner"));
+
+	// Create a camera boom (pulls in towards the player if there is a collision)
+>>>>>>> 82acd7346556c70d61b86ded3375c6f5419b421e
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	
 	
@@ -120,7 +127,12 @@ void APlayerCharacter::BeginPlay()
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime); // Don't forget this if you're overriding Tick
+	Super::Tick(DeltaTime);
+
+	if (bIsFiringBeam)
+	{
+		CastLight();
+	}
 
 	FVector Start = RootComponent->GetComponentLocation() + RootComponent->GetComponentRotation().RotateVector(SweepStartOffset);
 	FVector End = Start + (FollowCamera->GetForwardVector() * MaximumInteractionDistance);
@@ -242,7 +254,6 @@ void APlayerCharacter::Interact()
 	}
 }
 
-
 void APlayerCharacter::MoveForward(float Value)
 {
 	if (Controller != nullptr)
@@ -348,9 +359,26 @@ void APlayerCharacter::StopCrouch()
 	}
 }
 
+<<<<<<< HEAD
 void APlayerCharacter::AddKey(FName Key)
 {
 	CollectedKeys.Add(Key);
+=======
+void APlayerCharacter::CastLight()
+{
+	FVector Start = GetMesh()->GetSocketLocation(LightBeamSocketName);
+	FVector Direction = GetControlRotation().Vector();
+
+	LightBeamSpawner->SpawnBeam(Start, Direction);
+	bIsFiringBeam = true;
+}
+
+void APlayerCharacter::CastLightEnd()
+{
+	bIsFiringBeam = false;
+	LightBeamSpawner->DestroyBeam();
+}
+>>>>>>> 82acd7346556c70d61b86ded3375c6f5419b421e
 
 }
 
