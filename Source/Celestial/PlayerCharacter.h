@@ -20,7 +20,7 @@ class CELESTIAL_API APlayerCharacter : public ACharacter
 	GENERATED_BODY()
 
 	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
 	/** Follow camera */
@@ -51,8 +51,36 @@ public:
 	void StartCrouch();
 	void StopCrouch();
 	void Interact();
+<<<<<<< Updated upstream
 	void CastLight();
 	void CastLightEnd();
+=======
+
+	FVector DefaultCameraLocation;
+	FRotator DefaultCameraRotation;
+	float DefaultCameraBoomLength;
+	//for pick ups
+	void AddKey(FName Key);
+
+	void CastLight();
+
+	void CastLightEnd();
+
+	bool HasKey(FName KeyID) const;
+
+	void TryInteract();
+
+	void ResetCameraAfterInspect();
+
+	void SaveCameraDefaults();
+	void ToggleZoom();
+	void UpdateZoom(float DeltaTime);
+	FVector DefaultCameraBoomLocation;
+	FRotator DefaultCameraBoomRotation;
+
+
+	FHitResult HitResult;
+>>>>>>> Stashed changes
 
 	UPROPERTY(BlueprintReadOnly)
 	int CurrentLevelsCollectedCollectables = 0;
