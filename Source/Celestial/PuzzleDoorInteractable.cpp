@@ -26,7 +26,7 @@ void APuzzleDoorInteractable::HitTarget()
 
     // Open the door using the provided logic
     SetDoorState(EDoorState::Open);
-	Debug::Print("Door is now open");	
+	//Debug::Print("Door is now open");	
 }
 
 void APuzzleDoorInteractable::InteractAbility_Implementation()
