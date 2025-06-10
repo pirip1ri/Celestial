@@ -11,14 +11,24 @@
 /**
  *
  */
+class AInspectInteractable;
+struct FInputBindingHandle;
+class ARotatereflecter;
+class UPauseMenuWidget;
+
 UCLASS()
 class CELESTIAL_API ACelestialPlayerController : public APlayerController
 {
     GENERATED_BODY()
 
 protected:
+   
     virtual void BeginPlay() override;
+    void HandleTutorialNextStep(const FInputActionInstance& Instance);
+    void AdvanceTutorialStep();
+    void StartTutorial();
     virtual void SetupInputComponent() override;
+    bool bIsInteracting;
 private:
     // Input Mapping Context and Input Actions
     UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -53,11 +63,27 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* PauseAction;
-
     UPROPERTY(EditDefaultsOnly, Category = "Input")
-    UInputAction* CastLightAction;
+    UInputAction* MouseTurnAction;
+     UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* ExitInspectionAction; 
+    
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* BeemAction;  
+    
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* ZoomAction;
 
-    // Input Action Functions
+    UPROPERTY()
+    UPauseMenuWidget* PauseWidget;
+    
+   UPROPERTY(EditDefaultsOnly)
+   TSubclassOf< UPauseMenuWidget> PauseWidgetclass;
+   UPROPERTY()
+   ARotatereflecter* ActiveReflector;
+   
+   UPROPERTY(EditDefaultsOnly)
+  TSubclassOf<ARotatereflecter> ActiveReflectorClass;
     void MoveForward(const FInputActionValue& Value);
     void MoveRight(const FInputActionValue& Value);
     void LookUp(const FInputActionValue& Value);
@@ -65,14 +91,50 @@ private:
     void Sprint(const FInputActionValue& Value);
     void Dash(const FInputActionValue& Value);
     void Crouch(const FInputActionValue& Value);
+    void HandleReflectors(const FInputActionValue& Value);
+    void ToggleCharacterZoom();
     void JumpFunction();
     void JumpStopFunction();
     void InteractWithObject();
-    void CastLight();
-    void CastLightEnd();
-
-    // Pause the game
+    bool IsInteracting() const;
+    void  TurnReflector(float Value);
+    void LookUpReflector(float Value);
+    void EndInteraction();
+    void OnBeamPressed();
+    void OnBeamReleased();
+  
+  
     void TogglePause();
+    void ToggleInspect();
     // Helper function to set input mode
     void SetInputModeForPause(bool bIsPaused);
+  
+    UPROPERTY()
+    UInputAction* TutorialNextAction;
+    
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<AInspectInteractable> InspectClass;
+
+    
+    float  RotationSensitivity = 50.0f;
+    bool bTutorialModeActive = false;
+public:
+    int32 TutorialStep = 0;
+    UPROPERTY()
+    AInspectInteractable* CurrentInspectInteractable;
+   
+    void ApplyCameraZoomAndTilt(bool bZoomOut);
+
+    void SetActiveReflector(class ARotatereflecter* Reflector);
+    virtual void  Tick(float DeltaSeconds) override;
+  //virtual  void Tick(float DeltaTime)override;
+   UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+   bool bTriggerWhenPaused = true;
+
+   float TargetArmLength;
+   FRotator TargetBoomRotation;
+   FVector TargetSocketOffset;
+   bool bShouldZoom = false;
+   float CameraZoomInterpSpeed = 5.0f;
+ 
 };

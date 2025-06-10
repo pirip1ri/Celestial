@@ -9,7 +9,8 @@
 #include "LightBeamSpawnerComponent.h"
 #include "GameFramework/Controller.h"
 #include "Components/WidgetComponent.h"
-
+#include "CelestialPlayerController.h"
+#include "Rotatereflecter.h"
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -38,20 +39,6 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	SprintMultiplier = 1.5f;
 
-<<<<<<< Updated upstream
-	LightBeamSpawner = CreateDefaultSubobject<ULightBeamSpawnerComponent>(TEXT("LightBeamSpawner"));
-
-	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
-	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-=======
 	//LightBeamSpawner = CreateDefaultSubobject<ULightBeamSpawnerComponent>(TEXT("LightBeamSpawner"));
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -78,7 +65,7 @@ APlayerCharacter::APlayerCharacter()
 	CameraBoom->SetupAttachment(RootComponent);
 
 
-	CameraBoom->bUsePawnControlRotation = true;
+	
 	
 	// Correct collision setup
 	CameraBoom->bDoCollisionTest = true;
@@ -90,7 +77,6 @@ APlayerCharacter::APlayerCharacter()
 	// Initially hide and scale beam to zero length
 	BeamMesh->SetVisibility(false);
 	BeamMesh->SetRelativeScale3D(FVector(0.f, 1.f, 1.f));
->>>>>>> Stashed changes
 
 	bCanDash = true;
 }
@@ -106,6 +92,7 @@ void APlayerCharacter::BeginPlay()
 	CameraBoom->bUsePawnControlRotation = true;
 	// Store the default walk speed from the movement component
 	DefaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	SaveCameraDefaults();	
 
 	if (InteractionPromptClass)
 	{
@@ -115,6 +102,7 @@ void APlayerCharacter::BeginPlay()
 			InteractionPromptInstance->AddToViewport();
 		}
 	}
+
 	if (CollectableCounterClass)
 	{
 		CollectableCounterInstance = CreateWidget<UUserWidget>(GetWorld(), CollectableCounterClass);
@@ -123,7 +111,13 @@ void APlayerCharacter::BeginPlay()
 			CollectableCounterInstance->AddToViewport();
 		}
 	}
+
+	CameraBoom->TargetArmLength = ArmLength;
+	CameraBoom->SocketOffset = NormalArmOffset;
+
 }
+
+
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
@@ -141,7 +135,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	FHitResult HitResult;
+
 	bool bHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		Start,
@@ -152,7 +146,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		Params
 	);
 
-	if (bToggleDebugVisualiser)
+	/*if (bToggleDebugVisualiser)
 	{
 		DrawDebugCapsule(
 			GetWorld(),
@@ -164,7 +158,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 			false,
 			0.1f
 		);
-	}
+	}*/
 
 	AInteractable* HitInteractable = bHit ? Cast<AInteractable>(HitResult.GetActor()) : nullptr;
 
@@ -191,6 +185,59 @@ void APlayerCharacter::Tick(float DeltaTime)
 			InteractionPromptInstance->PlayFadeOut();
 		}
 	}
+
+	UpdateBeam(DeltaTime);
+	UpdateZoom(DeltaTime);
+
+
+}
+void APlayerCharacter::UpdateBeam(float DeltaTime)
+{
+	if (!BeamMesh || !BeamMesh->IsVisible())
+		return;
+
+	const float TargetLength = bIsBeamActive ? BeamMaxLength : 0.f;
+
+	// Linear interpolation at a constant rate
+	CurrentBeamLength = FMath::FInterpConstantTo(CurrentBeamLength, TargetLength, DeltaTime, BeamGrowthSpeed);
+
+	const float BeamScaleZ = CurrentBeamLength / 300.f; // Adjust for your mesh's original size
+	BeamMesh->SetRelativeScale3D(FVector(0.5f,0.5f, BeamScaleZ));
+	BeamMesh->SetRelativeLocation(FVector(0.f, 0.f, -50.f * BeamScaleZ));
+
+	// Align with chest socket
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		const FTransform SocketTransform = MeshComp->GetSocketTransform(ChestSocketName, RTS_World);
+		FRotator BeamRotation = SocketTransform.GetRotation().Rotator();
+		BeamRotation.Pitch -= 15.f;
+		BeamMesh->SetWorldRotation(BeamRotation);
+	}
+
+	if (CurrentBeamLength <= KINDA_SMALL_NUMBER && !bIsBeamActive)
+	{
+		BeamMesh->SetVisibility(false);
+	}
+
+
+}
+
+void APlayerCharacter::StartBeam()
+{
+	bIsBeamActive = true;
+
+	if (!BeamMesh->IsVisible())
+	{
+		BeamMesh->SetVisibility(true);
+	}
+
+	// Optional reset
+	// CurrentBeamLength = 0.f;
+}
+
+void APlayerCharacter::StopBeam()
+{
+	bIsBeamActive = false;
 }
 
 void APlayerCharacter::Interact()
@@ -307,14 +354,11 @@ void APlayerCharacter::StopCrouch()
 	}
 }
 
-<<<<<<< Updated upstream
-=======
 
 void APlayerCharacter::AddKey(FName Key)
 {
 	CollectedKeys.Add(Key);
 }
->>>>>>> Stashed changes
 void APlayerCharacter::CastLight()
 {
 	//FVector Start = GetMesh()->GetSocketLocation(LightBeamSocketName);
@@ -330,8 +374,6 @@ void APlayerCharacter::CastLightEnd()
 	//LightBeamSpawner->DestroyBeam();
 }
 
-<<<<<<< Updated upstream
-=======
 
 bool APlayerCharacter::HasKey(FName KeyID) const
 {
@@ -419,4 +461,3 @@ void APlayerCharacter::UpdateZoom(float DeltaTime)
 	FVector NewOffset = FMath::VInterpTo(CameraBoom->SocketOffset, TargetOffset, DeltaTime, CameraZoomSpeed);
 	CameraBoom->SocketOffset = NewOffset;
 }
->>>>>>> Stashed changes

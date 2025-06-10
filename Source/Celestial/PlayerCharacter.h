@@ -12,30 +12,31 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
-class ULightBeamSpawnerComponent;
 
 UCLASS()
 class CELESTIAL_API APlayerCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
-
-	UPROPERTY(VisibleAnywhere)
-	ULightBeamSpawnerComponent* LightBeamSpawner;
 
 public:
 	// Sets default values for this character's properties
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FollowCamera;
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* CameraBoom;
+
 	APlayerCharacter();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void UpdateBeam(float DeltaTime);
+
+	void StartBeam();
+	void StopBeam();
+	bool bIsBeamActive;
 	// Input functions called by PlayerController
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -51,10 +52,6 @@ public:
 	void StartCrouch();
 	void StopCrouch();
 	void Interact();
-<<<<<<< Updated upstream
-	void CastLight();
-	void CastLightEnd();
-=======
 
 	FVector DefaultCameraLocation;
 	FRotator DefaultCameraRotation;
@@ -80,10 +77,9 @@ public:
 
 
 	FHitResult HitResult;
->>>>>>> Stashed changes
 
 	UPROPERTY(BlueprintReadOnly)
-	int CurrentLevelsCollectedCollectables = 0;
+	int CollectedCollectables = 0;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -121,13 +117,72 @@ protected:
 	bool bCanDash = true;
 	FTimerHandle DashCooldownTimerHandle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LightBeam")
-	FName LightBeamSocketName = "spine_05"; // Default socket name
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsFiringBeam = false;
+
 
 	AInteractable* LastInteractable;
 private:
 	float DeadZoneThreshold = 0.1f;
 
+	//Zoom 
+	FVector OriginalCameraLocation;
+	FRotator OriginalCameraRotation;
+	bool bIsInspecting = false;
+	float InitialArmLength = 300.f;
+	bool bIsExitingInspection = false;
+	FVector DefaultCameraBoomWorldLocation;
+	FRotator DefaultCameraBoomWorldRotation;
+
+	FVector TargetInspectLocation;
+	FRotator TargetInspectRotation;
+	bool bIsResettingCamera = false;
+
+	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+	TSet<FName> CollectedKeys;
+	bool bCameraDefaultsSaved = false;
+
+	float CameraResetTimer = 0.f;
+	float CameraResetDuration = 0.5f; // Half second to reset
+	float StartingArmLength;
+	FRotator StartingBoomRotation;
+
+	FRotator TargetBoomRotation;
+
+
+
+	float StartingFOV;
+	float TargetFOV;
+	float FOVResetTimer = 0.f;
+	float FOVResetDuration = 0.4f; // Adjust speed
+	bool bIsResettingFOV = false;
+
+
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* BeamMesh;
+
+	// Beam growing parameters
+	UPROPERTY(EditAnywhere, Category = "Beam")
+	float BeamMaxLength = 100.f; // max length beam grows to
+
+	float BeamGrowthSpeed = 10.f; // units per second
+
+private:
+	float CurrentBeamLength = 0.f;
+
+	// To identify the chest socket name
+	UPROPERTY(EditDefaultsOnly, Category = "Beam")
+	FName ChestSocketName = TEXT("ChestSocket");
+
+
+
+	bool bIsZoomedIn = false;
+	float DefaultFOV = 90.f;
+	float ZoomedFOV = 60.f;
+	float CameraZoomSpeed = 10.f;
+
+	// Camera Boom (SpringArm) offsets
+	FVector NormalArmOffset = FVector(0.f, 50.f, 60.f);   // normal shoulder camera
+	FVector ZoomedArmOffset = FVector(0.f, 20.f, 75.f);    // closer over-the-shoulder
+
+	float ArmLength = 300.f;
+	float ZoomedArmLength = 150.f;
 };
