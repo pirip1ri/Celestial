@@ -56,9 +56,9 @@ void ACollectable::CheckOverlap(UPrimitiveComponent* OverlappedComponent, AActor
     UE_LOG(LogTemp, Display, TEXT("Check Overlap called"));
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor))
     {
-        PlayerCharacter->CurrentLevelsCollectedCollectables++;
+       // PlayerCharacter->CurrentLevelsCollectedCollectables++;
         CollectItem();
-        UE_LOG(LogTemp, Display, TEXT("Collected Collectables: %d"), PlayerCharacter->CurrentLevelsCollectedCollectables);
+       // UE_LOG(LogTemp, Display, TEXT("Collected Collectables: %d"), PlayerCharacter->CurrentLevelsCollectedCollectables);
     }
 }
 

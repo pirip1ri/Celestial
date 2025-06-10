@@ -39,38 +39,14 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	SprintMultiplier = 1.5f;
 
-<<<<<<< HEAD
-=======
-	LightBeamSpawner = CreateDefaultSubobject<ULightBeamSpawnerComponent>(TEXT("LightBeamSpawner"));
+	//LightBeamSpawner = CreateDefaultSubobject<ULightBeamSpawnerComponent>(TEXT("LightBeamSpawner"));
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
->>>>>>> 82acd7346556c70d61b86ded3375c6f5419b421e
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+ 
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("SpringAim");
 	
-	
-	CameraBoom->bUsePawnControlRotation = true;
 
 	
-	CameraBoom->CameraLagSpeed = 12.0f;
-	CameraBoom->bEnableCameraRotationLag = true;
-	CameraBoom->CameraRotationLagSpeed = 12.0f;
-
-	// Essential collision settings
-	
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f;
-	CameraBoom->bUsePawnControlRotation = true;
-
-	CameraBoom->bEnableCameraLag = true;
-	CameraBoom->CameraLagSpeed = 12.0f;
-	CameraBoom->bEnableCameraRotationLag = true;
-	CameraBoom->CameraRotationLagSpeed = 12.0f;
-
-	// Correct collision setup
-	CameraBoom->bDoCollisionTest = true;
-	CameraBoom->ProbeSize = 8.0f;
-	CameraBoom->ProbeChannel = ECC_Camera;
-
 
 	// Create the camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -81,6 +57,21 @@ APlayerCharacter::APlayerCharacter()
 	BeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BeamMesh"));
 	BeamMesh->SetupAttachment(GetMesh(), ChestSocketName);
 	BeamMesh->SetRelativeLocation(FVector::ZeroVector);
+	
+
+
+	// Essential collision settings
+	
+	CameraBoom->SetupAttachment(RootComponent);
+
+
+	
+	
+	// Correct collision setup
+	CameraBoom->bDoCollisionTest = true;
+	CameraBoom->ProbeSize = 8.0f;
+	CameraBoom->ProbeChannel = ECC_Camera;
+
 	BeamMesh->SetRelativeRotation(FRotator::ZeroRotator);
 
 	// Initially hide and scale beam to zero length
@@ -94,7 +85,11 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	CameraBoom->CameraLagSpeed = 12.0f;
+	CameraBoom->bEnableCameraRotationLag = true;
+	CameraBoom->CameraRotationLagSpeed = 12.0f;
 
+	CameraBoom->bUsePawnControlRotation = true;
 	// Store the default walk speed from the movement component
 	DefaultWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	SaveCameraDefaults();	
@@ -129,10 +124,10 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsFiringBeam)
+	/*if (bIsFiringBeam)
 	{
 		CastLight();
-	}
+	}*/
 
 	FVector Start = RootComponent->GetComponentLocation() + RootComponent->GetComponentRotation().RotateVector(SweepStartOffset);
 	FVector End = Start + (FollowCamera->GetForwardVector() * MaximumInteractionDistance);
@@ -359,28 +354,26 @@ void APlayerCharacter::StopCrouch()
 	}
 }
 
-<<<<<<< HEAD
+
 void APlayerCharacter::AddKey(FName Key)
 {
 	CollectedKeys.Add(Key);
-=======
+}
 void APlayerCharacter::CastLight()
 {
-	FVector Start = GetMesh()->GetSocketLocation(LightBeamSocketName);
+	//FVector Start = GetMesh()->GetSocketLocation(LightBeamSocketName);
 	FVector Direction = GetControlRotation().Vector();
 
-	LightBeamSpawner->SpawnBeam(Start, Direction);
-	bIsFiringBeam = true;
+	//LightBeamSpawner->SpawnBeam(Start, Direction);
+	//bIsFiringBeam = true;
 }
 
 void APlayerCharacter::CastLightEnd()
 {
-	bIsFiringBeam = false;
-	LightBeamSpawner->DestroyBeam();
+	//bIsFiringBeam = false;
+	//LightBeamSpawner->DestroyBeam();
 }
->>>>>>> 82acd7346556c70d61b86ded3375c6f5419b421e
 
-}
 
 bool APlayerCharacter::HasKey(FName KeyID) const
 {

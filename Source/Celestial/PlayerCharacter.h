@@ -59,6 +59,10 @@ public:
 	//for pick ups
 	void AddKey(FName Key);
 
+	void CastLight();
+
+	void CastLightEnd();
+
 	bool HasKey(FName KeyID) const;
 
 	void TryInteract();
