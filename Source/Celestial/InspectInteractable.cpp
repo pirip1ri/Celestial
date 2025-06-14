@@ -82,7 +82,7 @@ void AInspectInteractable::Tick(float DeltaTime)
         FRotator NewRelativeRotation = FMath::RInterpTo(CameraBoom->GetRelativeRotation(), RelativeTargetRotation, DeltaTime, 5.0f);
         float NewArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, InspectArmLength, DeltaTime, 5.0f);
 
-        // Apply changes
+     
         CameraBoom->SocketOffset = NewSocketOffset;
         CameraBoom->SetRelativeRotation(NewRelativeRotation);
         CameraBoom->TargetArmLength = NewArmLength;

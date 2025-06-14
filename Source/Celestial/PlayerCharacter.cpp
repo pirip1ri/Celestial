@@ -39,9 +39,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	SprintMultiplier = 1.5f;
 
-	//LightBeamSpawner = CreateDefaultSubobject<ULightBeamSpawnerComponent>(TEXT("LightBeamSpawner"));
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
  
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("SpringAim");
 	
@@ -60,21 +58,19 @@ APlayerCharacter::APlayerCharacter()
 	
 
 
-	// Essential collision settings
+
 	
 	CameraBoom->SetupAttachment(RootComponent);
 
 
 	
-	
-	// Correct collision setup
+
 	CameraBoom->bDoCollisionTest = true;
 	CameraBoom->ProbeSize = 8.0f;
 	CameraBoom->ProbeChannel = ECC_Camera;
 
 	BeamMesh->SetRelativeRotation(FRotator::ZeroRotator);
 
-	// Initially hide and scale beam to zero length
 	BeamMesh->SetVisibility(false);
 	BeamMesh->SetRelativeScale3D(FVector(0.f, 1.f, 1.f));
 
@@ -176,7 +172,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 			}
 		}
 	}
-	else if (LastInteractable) // We were looking at something, but not anymore
+	else if (LastInteractable) 
 	{
 		LastInteractable = nullptr;
 

@@ -11,6 +11,7 @@
 /**
  *
  */
+class AInteractableDoor;
 class AInspectInteractable;
 struct FInputBindingHandle;
 class ARotatereflecter;
@@ -76,6 +77,9 @@ private:
 
     UPROPERTY()
     UPauseMenuWidget* PauseWidget;
+
+    //ARotatereflecter* HitReflector;
+
     
    UPROPERTY(EditDefaultsOnly)
    TSubclassOf< UPauseMenuWidget> PauseWidgetclass;
@@ -115,14 +119,14 @@ private:
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<AInspectInteractable> InspectClass;
 
-    
+
     float  RotationSensitivity = 50.0f;
     bool bTutorialModeActive = false;
 public:
     int32 TutorialStep = 0;
     UPROPERTY()
     AInspectInteractable* CurrentInspectInteractable;
-   
+    AInteractableDoor* Door;
     void ApplyCameraZoomAndTilt(bool bZoomOut);
 
     void SetActiveReflector(class ARotatereflecter* Reflector);

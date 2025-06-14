@@ -12,7 +12,7 @@
 #include "InspectInteractable.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "InteractableDoor.h"
 
 void ACelestialPlayerController::BeginPlay()
 {
@@ -67,14 +67,14 @@ void ACelestialPlayerController::AdvanceTutorialStep()
     {
     case 1:
         UE_LOG(LogTemp, Log, TEXT("Step 1: Move forward."));
-        // Optionally, update UI or give additional instructions for this step
+     
         break;
     case 2:
         UE_LOG(LogTemp, Log, TEXT("Step 2: Jump."));
         break;
     case 3:
         UE_LOG(LogTemp, Log, TEXT("Tutorial complete."));
-        bTutorialModeActive = false;  // End tutorial when all steps are completed
+        bTutorialModeActive = false;  
         break;
     }
 }
@@ -114,7 +114,7 @@ void ACelestialPlayerController::StartTutorial()
 
             // Bind Interact
             EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ACelestialPlayerController::InteractWithObject);
-          //  EnhancedInput->BindAction(ExitInspectionAction, ETriggerEvent::Started, this, &ACelestialPlayerController::CancelInspectInput);
+           EnhancedInput->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::EndInteraction);
           
             
         
@@ -262,40 +262,62 @@ void ACelestialPlayerController::JumpStopFunction()
 
 void ACelestialPlayerController::InteractWithObject()
 {
-    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn()))
+    APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn());
+    if (!PlayerCharacter) return;
+
+    AActor* HitActor = PlayerCharacter->HitResult.GetActor();
+    if (!HitActor) return;
+
+    ARotatereflecter* HitReflector = Cast<ARotatereflecter>(HitActor);
+
+    if (HitReflector)
     {
-        AActor* HitActor = PlayerCharacter->HitResult.GetActor();
-        if (!HitActor)
-            return;
-
-
         if (IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitActor))
         {
-            // Only update ActiveReflector if it's a reflector
-            if (ARotatereflecter* HitReflector = Cast<ARotatereflecter>(HitActor))
+            if (ActiveReflector != HitReflector)
             {
-                if (ActiveReflector != HitReflector)
-                {
-                    SetActiveReflector(HitReflector);
-                    PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
-                }
-                else if (!IsInteracting())
-                {
-                    EndInteraction();
-                    SetActiveReflector(nullptr);
-                    PlayerCharacter->CameraBoom->bUsePawnControlRotation = true;
-
-                }
+               
+                SetActiveReflector(HitReflector);
+                PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
             }
-            //Interactable->OnInteract(PlayerCharacter);
+
+            // Optionally trigger interface interaction
+            // Interactable->OnInteract(PlayerCharacter);
         }
-        else
+    }
+    else if (!IsInteracting())
+    {
+        EndInteraction();
+        SetActiveReflector(nullptr);
+        PlayerCharacter->CameraBoom->bUsePawnControlRotation = true;
+    }
+
+    if (!CurrentInspectInteractable)
+    {
+        AActor* FoundActor = UGameplayStatics::GetActorOfClass(GetWorld(), AInspectInteractable::StaticClass());
+        CurrentInspectInteractable = Cast<AInspectInteractable>(FoundActor);
+
+        if (CurrentInspectInteractable && !ActiveReflector )
         {
-            // Fallback for non-interactable actors
-            PlayerCharacter->Interact();
+            CurrentInspectInteractable->InteractAbility();
+        }
+    }
+
+    // This assumes HitActor is already defined somewhere earlier
+    Door = Cast<AInteractableDoor>(HitActor);
+
+    // Clear the inspect interactable reference if Door is valid
+    if (Door)
+    {
+        CurrentInspectInteractable = nullptr;
+
+        if (!ActiveReflector)
+        {
+            Door->InteractAbility_Implementation();
         }
     }
 }
+
             
         
 bool ACelestialPlayerController::IsInteracting() const

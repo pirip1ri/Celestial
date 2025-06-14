@@ -37,7 +37,7 @@ private:
 	TSubclassOf<UMenuBaseWidget>WidgetClass;
 	FTimerHandle ContextualMenuDelayHandle;
 	bool bIsExitingInspection = false;
-	// In AInspectInteractable.h
+
 	UPROPERTY(EditDefaultsOnly, Category = "Inspect")
 	float InspectArmLength = 150.f; // or 100.f or whatever looks good
 
