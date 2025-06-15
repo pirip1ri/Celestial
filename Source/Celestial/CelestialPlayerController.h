@@ -12,11 +12,11 @@
  *
  */
 class AInteractableDoor;
-class AInspectInteractable;
+class AInspectInteractables;
 struct FInputBindingHandle;
 class ARotatereflecter;
 class UPauseMenuWidget;
-
+class APlayerCharacter;
 UCLASS()
 class CELESTIAL_API ACelestialPlayerController : public APlayerController
 {
@@ -71,6 +71,8 @@ private:
     
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* BeemAction;  
+     UPROPERTY(EditDefaultsOnly, Category = "Input")
+    UInputAction* InspectAction;  
     
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     UInputAction* ZoomAction;
@@ -100,6 +102,12 @@ private:
     void JumpFunction();
     void JumpStopFunction();
     void InteractWithObject();
+    bool HandleReflectorInteraction(AActor* HitActor, APlayerCharacter* PlayerCharacter);
+    void ResetReflectorState(APlayerCharacter* PlayerCharacter);
+  void HandleInspectInteraction();
+   
+ //   bool HandleInspectInteraction();
+    bool HandleDoorInteraction(AActor* HitActor);
     bool IsInteracting() const;
     void  TurnReflector(float Value);
     void LookUpReflector(float Value);
@@ -112,12 +120,11 @@ private:
     void ToggleInspect();
     // Helper function to set input mode
     void SetInputModeForPause(bool bIsPaused);
-  
+    //AInspectInteractables* Inspectable;
     UPROPERTY()
     UInputAction* TutorialNextAction;
     
-    UPROPERTY(EditDefaultsOnly)
-    TSubclassOf<AInspectInteractable> InspectClass;
+    
 
 
     float  RotationSensitivity = 50.0f;
@@ -125,7 +132,7 @@ private:
 public:
     int32 TutorialStep = 0;
     UPROPERTY()
-    AInspectInteractable* CurrentInspectInteractable;
+    AInspectInteractables* CurrentInspectInteractable;
     AInteractableDoor* Door;
     void ApplyCameraZoomAndTilt(bool bZoomOut);
 

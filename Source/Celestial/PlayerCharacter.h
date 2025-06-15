@@ -12,7 +12,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
-
+class AInspectInteractables;
 UCLASS()
 class CELESTIAL_API APlayerCharacter : public ACharacter
 {
@@ -33,7 +33,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void UpdateBeam(float DeltaTime);
-
+	AInteractable* HitInteractable;
 	void StartBeam();
 	void StopBeam();
 	bool bIsBeamActive;
@@ -60,7 +60,8 @@ public:
 	void AddKey(FName Key);
 
 	void CastLight();
-
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AInspectInteractables> InspectClass;
 	void CastLightEnd();
 
 	bool HasKey(FName KeyID) const;
@@ -76,6 +77,9 @@ public:
 	FRotator DefaultCameraBoomRotation;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash|Animation")
+	UAnimMontage* DashMontage;
+
 	FHitResult HitResult;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -85,14 +89,15 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	float MaximumInteractionDistance = 750.0f;
+	float MaximumInteractionDistance = 250.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	float InteractionRadius = 30.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	bool bToggleDebugVisualiser = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	FVector SweepStartOffset = FVector(0.f, 0.f, 50.f); // Example: Start from head height
-
+	//UPROPERTY()
+	//AInspectInteractables* InspectInteract;
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UInteractionPromptWidget> InteractionPromptClass;
 	UPROPERTY(EditDefaultsOnly, Category = "UI")

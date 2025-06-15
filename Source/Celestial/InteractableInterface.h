@@ -23,6 +23,6 @@ class CELESTIAL_API IInteractableInterface
 
 	
 public:
-
+	UFUNCTION()
 	virtual void OnInteract(APlayerCharacter* PlayerCharacter)=0;
 };

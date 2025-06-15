@@ -37,7 +37,7 @@ void ALightBeamActor::UpdateBeamTransform(FVector Start, FVector Direction)
         Hit,
         Start,
         End,
-        FQuat::FindBetweenVectors(FVector::UpVector, (End - Start).GetSafeNormal()), // Correct rotation!
+        FQuat::FindBetweenVectors(FVector::UpVector, (End - Start).GetSafeNormal()), 
         ECC_Visibility,
         FCollisionShape::MakeCapsule(BeamRadius, MaxBeamLength * 0.5f),
         Params

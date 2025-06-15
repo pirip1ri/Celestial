@@ -9,7 +9,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/Image.h"
 #include "CelestialPlayerController.h"
- #include "InspectInteractable.h" // Add this include to resolve the incomplete type error for AInspectInteractable
+ #include "InspectInteractables.h"
 
 void UPauseMenuWidget::NativeOnInitialized()
 {

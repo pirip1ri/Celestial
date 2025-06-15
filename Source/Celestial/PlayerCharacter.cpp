@@ -3,6 +3,7 @@
 
 #include "PlayerCharacter.h"
 #include "Camera/CameraComponent.h"
+ 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -11,6 +12,8 @@
 #include "Components/WidgetComponent.h"
 #include "CelestialPlayerController.h"
 #include "Rotatereflecter.h"
+#include "InspectInteractables.h"
+#include <Kismet/GameplayStatics.h>
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -156,8 +159,9 @@ void APlayerCharacter::Tick(float DeltaTime)
 		);
 	}*/
 
-	AInteractable* HitInteractable = bHit ? Cast<AInteractable>(HitResult.GetActor()) : nullptr;
-
+	HitInteractable = bHit ? Cast<AInteractable>(HitResult.GetActor()) : nullptr;
+		 bHit ? Cast<AInspectInteractables>(HitResult.GetActor()) : HitInteractable;
+	
 	if (HitInteractable)
 	{
 		// Only update if it's a new interactable
@@ -243,6 +247,7 @@ void APlayerCharacter::Interact()
 		UE_LOG(LogTemp, Display, TEXT("INTERACTTTTTT"));
 		LastInteractable->InteractAbility();
 	}
+	
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -309,23 +314,40 @@ void APlayerCharacter::StopSprint()
 
 void APlayerCharacter::PlayDashMontage_Implementation()
 {
+	if (!DashMontage || !GetMesh()) return;
 
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		// Optional: Stop any montage to ensure DashMontage plays
+		AnimInstance->Montage_Stop(0.1f); // short fade-out
+		AnimInstance->Montage_Play(DashMontage);
+	}
 }
 
 void APlayerCharacter::Dash()
 {
-	if (Controller != nullptr && bCanDash)
+	if (Controller && bCanDash)
 	{
 		bCanDash = false;
 
-		FVector ForwardDir = GetActorRotation().Vector();
+		// Play dash animation
+		PlayDashMontage();
+
+		FVector ForwardDir = GetActorForwardVector();
 		FVector UpwardDir = FVector::UpVector;
 		FVector DashVector = (ForwardDir * DashDistance) + (UpwardDir * VerticalDashDistance);
 
 		LaunchCharacter(DashVector, true, true);
 
 		// Start cooldown timer
-		GetWorld()->GetTimerManager().SetTimer(DashCooldownTimerHandle, this, &APlayerCharacter::DashReload, DashCooldown, false);
+		GetWorld()->GetTimerManager().SetTimer(
+			DashCooldownTimerHandle,
+			this,
+			&APlayerCharacter::DashReload,
+			DashCooldown,
+			false
+		);
 	}
 }
 
@@ -333,6 +355,7 @@ void APlayerCharacter::DashReload()
 {
 	bCanDash = true;
 }
+
 
 void APlayerCharacter::StartCrouch()
 {
@@ -379,23 +402,57 @@ bool APlayerCharacter::HasKey(FName KeyID) const
 
 void APlayerCharacter::TryInteract()
 {
-	if (LastInteractable)
+	if (AInteractable* Inspect = Cast<AInteractable>(InspectClass))
 	{
 		LastInteractable->InteractAbility();
 
-
-		ACelestialPlayerController* CelestialController = Cast<ACelestialPlayerController>(GetController());
-		ARotatereflecter* Reflector = Cast<ARotatereflecter>(LastInteractable);
-
-		if (CelestialController && Reflector)
+		if (AInspectInteractables* InspectInteract = Cast<AInspectInteractables>(LastInteractable))
 		{
-			CelestialController->SetActiveReflector(Reflector);
-			Reflector->bIsInteracting = true;
-
-			
+			InspectInteract->InteractAbility(); // Make sure this function exists and is meaningful
 		}
+
+		// Try to get the controller and check if it's valid
+		if (ACelestialPlayerController* CelestialController = Cast<ACelestialPlayerController>(GetController()))
+		{
+			// If the interactable is a reflector, set it as active
+			if (ARotatereflecter* Reflector = Cast<ARotatereflecter>(LastInteractable))
+			{
+				CelestialController->SetActiveReflector(Reflector);
+				Reflector->bIsInteracting = true;
+			}
+		}
+
+	}
+	else
+	{
+
+
+		if (ACelestialPlayerController* C = Cast<ACelestialPlayerController>(GetController()))
+		{
+
+
+			AInspectInteractables* Inspectable = Cast<AInspectInteractables>(UGameplayStatics::GetActorOfClass(GetWorld(), AInspectInteractables::StaticClass()));
+			Inspect = Cast<AInspectInteractables>(Inspectable);
+			
+			if (Inspectable == Cast<AInspectInteractables>(Inspect))
+			{
+				Inspectable->InteractAbility();
+			}
+			if (InteractionPromptInstance && LastInteractable)
+			{
+				InteractionPromptInstance->SetPromptText(LastInteractable->InteractionPromptText);
+				InteractionPromptInstance->PlayFadeIn();
+			}
+		}
+
+
 	}
 }
+		
+
+		
+// If the interactable is an inspectable one, optionally handle extra inspect logic here
+
 
 void APlayerCharacter::ResetCameraAfterInspect()
 {

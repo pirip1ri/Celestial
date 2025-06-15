@@ -137,7 +137,7 @@ void ARotatereflecter::ReflectBeam(FVector HitPoint, FVector IncomingDirection, 
     bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, OffsetStart, TraceEnd, ECC_Visibility);
 
     FVector BeamEnd = bHit ? Hit.ImpactPoint : TraceEnd;
-    DrawDebugLine(GetWorld(), HitPoint, BeamEnd, FColor::Cyan, false, 0.1f, 0, 2.0f);
+    DrawDebugLine(GetWorld(), HitPoint, BeamEnd, FColor::Cyan, false, 0.1f, 0, 10.0f);
 
     if (bHit)
     {
