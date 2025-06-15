@@ -115,7 +115,7 @@ void ACelestialPlayerController::StartTutorial()
 
             // Bind Interact
             EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &ACelestialPlayerController::InteractWithObject);
-           EnhancedInput->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::EndInteraction);
+//EnhancedInput->BindAction(InteractAction, ETriggerEvent::Completed, this, &ACelestialPlayerController::InteractWithObject);
           
             
         
@@ -286,24 +286,27 @@ void ACelestialPlayerController::InteractWithObject()
 
 bool ACelestialPlayerController::HandleReflectorInteraction(AActor* Hit, APlayerCharacter* PlayerCharacter)
 {
-    if (ARotatereflecter* HitReflector = Cast<ARotatereflecter>(Hit))
+    // Check if the hit actor is a valid Rotatereflecter
+    ARotatereflecter* HitReflector = Cast<ARotatereflecter>(Hit);
+    if (!HitReflector)
     {
-        if (IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitReflector))
+        return false; // Not a reflector, not handled
+    }
+
+    // Check if the reflector implements the Interactable interface
+    if (IInteractableInterface* Interactable = Cast<IInteractableInterface>(HitReflector))
+    {
+        // If it's a different reflector and not inspecting
+        if (ActiveReflector != HitReflector && !CurrentInspectInteractable)
         {
-            if (ActiveReflector != HitReflector &&!CurrentInspectInteractable)
-            {
-                SetActiveReflector(HitReflector);
-                PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
+            SetActiveReflector(HitReflector);
+            PlayerCharacter->CameraBoom->bUsePawnControlRotation = false;
 
-                
-            }
-
-            return true; // handled
+            return true; // Interaction handled
         }
     }
 
-  
-    return false; // not a reflector
+    return false; // Either already active or in inspection mode
 }
 
 
@@ -320,8 +323,10 @@ void ACelestialPlayerController::ResetReflectorState(APlayerCharacter* PlayerCha
 void ACelestialPlayerController::HandleInspectInteraction()
 {
     APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn());
-    PlayerCharacter->TryInteract();
-    
+    if (PlayerCharacter && PlayerCharacter->bHit)
+    {
+        PlayerCharacter->TryInteract();
+    }
 }
 
 

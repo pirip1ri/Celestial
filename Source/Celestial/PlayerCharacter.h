@@ -31,7 +31,7 @@ public:
 	APlayerCharacter();
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	bool bHit;
 	void UpdateBeam(float DeltaTime);
 	AInteractable* HitInteractable;
 	void StartBeam();
@@ -70,6 +70,8 @@ public:
 
 	void ResetCameraAfterInspect();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int CurrentLevelsCollectedCollectables;
 	void SaveCameraDefaults();
 	void ToggleZoom();
 	void UpdateZoom(float DeltaTime);
@@ -123,7 +125,6 @@ protected:
 	FTimerHandle DashCooldownTimerHandle;
 
 
-
 	AInteractable* LastInteractable;
 private:
 	float DeadZoneThreshold = 0.1f;
@@ -151,7 +152,6 @@ private:
 	FRotator StartingBoomRotation;
 
 	FRotator TargetBoomRotation;
-
 
 
 	float StartingFOV;

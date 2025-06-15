@@ -135,7 +135,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Params.AddIgnoredActor(this);
 
 
-	bool bHit = GetWorld()->SweepSingleByChannel(
+	 bHit = GetWorld()->SweepSingleByChannel(
 		HitResult,
 		Start,
 		End,
@@ -402,14 +402,9 @@ bool APlayerCharacter::HasKey(FName KeyID) const
 
 void APlayerCharacter::TryInteract()
 {
-	if (AInteractable* Inspect = Cast<AInteractable>(InspectClass))
+	
 	{
-		LastInteractable->InteractAbility();
-
-		if (AInspectInteractables* InspectInteract = Cast<AInspectInteractables>(LastInteractable))
-		{
-			InspectInteract->InteractAbility(); // Make sure this function exists and is meaningful
-		}
+	
 
 		// Try to get the controller and check if it's valid
 		if (ACelestialPlayerController* CelestialController = Cast<ACelestialPlayerController>(GetController()))
@@ -423,7 +418,7 @@ void APlayerCharacter::TryInteract()
 		}
 
 	}
-	else
+	
 	{
 
 
@@ -432,8 +427,8 @@ void APlayerCharacter::TryInteract()
 
 
 			AInspectInteractables* Inspectable = Cast<AInspectInteractables>(UGameplayStatics::GetActorOfClass(GetWorld(), AInspectInteractables::StaticClass()));
-			Inspect = Cast<AInspectInteractables>(Inspectable);
-			
+			AInteractable* Inspect = Cast<AInspectInteractables>(Inspectable);
+
 			if (Inspectable == Cast<AInspectInteractables>(Inspect))
 			{
 				Inspectable->InteractAbility();
@@ -444,9 +439,9 @@ void APlayerCharacter::TryInteract()
 				InteractionPromptInstance->PlayFadeIn();
 			}
 		}
-
-
 	}
+
+	
 }
 		
 

@@ -31,7 +31,7 @@ protected:
 	void CheckOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
-	//---- Jade "made this virual"---//
+
 	UFUNCTION()
 	virtual	void CollectItem();
 

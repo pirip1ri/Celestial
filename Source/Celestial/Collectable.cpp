@@ -56,7 +56,7 @@ void ACollectable::CheckOverlap(UPrimitiveComponent* OverlappedComponent, AActor
     UE_LOG(LogTemp, Display, TEXT("Check Overlap called"));
     if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor))
     {
-       // PlayerCharacter->CurrentLevelsCollectedCollectables++;
+        PlayerCharacter->CurrentLevelsCollectedCollectables++;
         CollectItem();
        // UE_LOG(LogTemp, Display, TEXT("Collected Collectables: %d"), PlayerCharacter->CurrentLevelsCollectedCollectables);
     }
@@ -78,7 +78,7 @@ void ACollectable::CollectItem()
     StaticMesh->SetVisibility(false);
     StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     TriggerBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    SetLifeSpan(3.0f);
+    SetLifeSpan(0.02f);
 }
 
 // Called every frame
