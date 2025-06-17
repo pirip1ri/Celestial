@@ -470,7 +470,8 @@ void ACelestialPlayerController::ApplyCameraZoomAndTilt(bool bZoomOut)
     {
         TargetArmLength = bZoomOut ? 700.0f : 300.0f;
         TargetBoomRotation = bZoomOut ? FRotator(-25.0f, 0.0f, 0.0f) : FRotator::ZeroRotator;
-        TargetSocketOffset = bZoomOut ? FVector(0.0f, 0.0f, 100.0f) : FVector::ZeroVector;
+        //dont need this
+        //TargetSocketOffset = bZoomOut ? FVector(0.0f, 0.0f, 100.0f) : FVector::ZeroVector;
         bShouldZoom = true;
     }
 }
@@ -496,16 +497,16 @@ void ACelestialPlayerController::Tick(float DeltaSeconds)
             if (!CameraBoom) return;
 
             CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, TargetArmLength, DeltaSeconds, CameraZoomInterpSpeed);
-            CameraBoom->SetRelativeRotation(FMath::RInterpTo(CameraBoom->GetRelativeRotation(), TargetBoomRotation, DeltaSeconds, CameraZoomInterpSpeed));
+           CameraBoom->SetRelativeRotation(FMath::RInterpTo(TargetBoomRotation, TargetBoomRotation, DeltaSeconds, CameraZoomInterpSpeed));
             CameraBoom->SocketOffset = FMath::VInterpTo(CameraBoom->SocketOffset, TargetSocketOffset, DeltaSeconds, CameraZoomInterpSpeed);
 
             // Stop updating if we're close enough
-            if (FMath::IsNearlyEqual(CameraBoom->TargetArmLength, TargetArmLength, 0.5f) &&
+            /*if (FMath::IsNearlyEqual(CameraBoom->TargetArmLength, TargetArmLength, 0.5f) &&
                 CameraBoom->GetRelativeRotation().Equals(TargetBoomRotation, 0.5f) &&
                 CameraBoom->SocketOffset.Equals(TargetSocketOffset, 1.0f))
             {
                 bShouldZoom = false;
-            }
+            }*/
         }
     }
 }
