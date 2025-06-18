@@ -25,7 +25,7 @@ public:
 	virtual void OnInteract(APlayerCharacter* PlayerCharacter) override;
 virtual	void Tick(float DeltaTime) override;
 
-	float RotationSpeed = 0.5f; 
+	float RotationSpeed = 0.1f; 
 	bool bShouldRotate;
 virtual	void ReflectBeam(FVector HitPoint, FVector IncomingDirection, int32 RemainingBounces);
 	void AddYawInput(float DeltaYaw);
