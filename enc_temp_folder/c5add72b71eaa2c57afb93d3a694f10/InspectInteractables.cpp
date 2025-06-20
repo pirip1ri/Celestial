@@ -69,30 +69,21 @@ void AInspectInteractables::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
- 
+    if (!bIsInspecting || !TargetPlayer || !InspectCameraAnchor)
+        return;
 
-    if (bIsInspecting && TargetPlayer && InspectCameraAnchor)
-    {
-        USpringArmComponent* CameraBoom = TargetPlayer->CameraBoom;
-        if (!CameraBoom) return;
+    USpringArmComponent* CameraBoom = TargetPlayer->CameraBoom;
+    if (!CameraBoom) return;
 
-        FVector TargetLocation = InspectCameraAnchor->GetComponentLocation();
-        FRotator TargetRotation = InspectCameraAnchor->GetComponentRotation();
+    const FVector TargetLocation = InspectCameraAnchor->GetComponentLocation();
+    const FRotator TargetRotation = InspectCameraAnchor->GetComponentRotation();
 
-        // Compute local transform relative to the player
-        FVector RelativeTargetLocation = TargetPlayer->GetActorTransform().InverseTransformPosition(TargetLocation);
-        FRotator RelativeTargetRotation = TargetRotation - TargetPlayer->GetActorRotation();
+    const FVector RelativeLocation = TargetPlayer->GetActorTransform().InverseTransformPosition(TargetLocation);
+    const FRotator RelativeRotation = TargetRotation - TargetPlayer->GetActorRotation();
 
-        // Interpolate relative offset and rotation
-        FVector NewSocketOffset = FMath::VInterpTo(CameraBoom->SocketOffset, RelativeTargetLocation, DeltaTime, 5.0f);
-        FRotator NewRelativeRotation = FMath::RInterpTo(CameraBoom->GetRelativeRotation(), RelativeTargetRotation, DeltaTime, 5.0f);
-        float NewArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, InspectArmLength, DeltaTime, 5.0f);
-
-        // Apply changes
-        CameraBoom->SocketOffset = NewSocketOffset;
-        CameraBoom->SetRelativeRotation(NewRelativeRotation);
-        CameraBoom->TargetArmLength = NewArmLength;
-    }
+    CameraBoom->SocketOffset = FMath::VInterpTo(CameraBoom->SocketOffset, RelativeLocation, DeltaTime, 5.f);
+    CameraBoom->SetRelativeRotation(FMath::RInterpTo(CameraBoom->GetRelativeRotation(), RelativeRotation, DeltaTime, 5.f));
+    CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, InspectArmLength, DeltaTime, 5.f);
 }
 
 void AInspectInteractables::EndInspection()
